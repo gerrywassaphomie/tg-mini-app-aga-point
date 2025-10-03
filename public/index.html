@@ -15,204 +15,191 @@
   
 
  <style>
-    /* === Общие стили === */
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f4f6f8;
-    }
+  /* === Общие стили === */
+  body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f6f8;
+  }
 
-    /* === Header и Footer === */
-    #header, #footer {
-      width: 100%;
-      text-align: center;
-      font-size: 2em;
-      font-weight: bold;
-      color: white;
-      background: linear-gradient(135deg, #ff4800, #e9e9e9);
-      padding: 12px 0;
-      border-top: 4px solid #444;
-      border-bottom: 4px solid #444;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-      position: relative;
-      z-index: 1000;
-    }
+  /* === Header === */
+  #header {
+    width: 100%;
+    text-align: center;
+    font-size: 2em;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #000000, #000000);
+    padding: 12px 0;
+    border-top: 4px solid #444;
+    border-bottom: 4px solid #444;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 1000;
+  }
 
-    #footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-    }
+  /* === Карта === */
+  #map { height: 90vh; width: 100%; }
 
-    /* === Карта === */
-    #map { height: 90vh; width: 100%; }
+  /* === Кнопки Report/List === */
+  .controls {
+    position: absolute;
+    top: 80px;
+    left: 15px;
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+  }
+  .controls button {
+    padding: 12px 20px;
+    margin: 5px 0;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    background: linear-gradient(to right, #007bff, #00c6ff);
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .controls button:hover { opacity: 0.85; }
 
-    /* === Кнопки Report/List (правый нижний угол) === */
-    .controls {
-      position: fixed;
-      bottom: 80px; /* чуть выше footer */
-      right: 15px;
-      z-index: 1001;
-      display: flex;
-      flex-direction: column;
-    }
-    .controls button {
-      padding: 12px 20px;
-      margin: 5px 0;
-      border: none;
-      border-radius: 10px;
-      font-weight: bold;
-      background: linear-gradient(to right, #007bff, #00c6ff);
-      color: white;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    .controls button:hover { opacity: 0.85; }
+  /* === Список репортов (слайдер снизу) === */
+  #reportList {
+    display: block;
+    position: fixed;
+    left: 0;
+    bottom: -60%; /* скрыт изначально */
+    width: 100%;
+    height: 50%;
+    background: #ffffff;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    z-index: 1002;
+    transition: bottom 0.4s ease;
+    overflow-y: auto;
+  }
+  #reportList.show { bottom: 0; } /* показать */
 
-    /* === Список репортов === */
-   #reportList {
-  display: none;
-  position: fixed; /* фиксируем относительно экрана */
-  top: 90px; /* еще ниже header */
-  right: 10px; /* отступ от края */
-  width: 200px; /* еще компактнее */
-  max-height: 35vh; /* заметно меньше по высоте */
-  overflow-y: auto;
-  background: #ffffff;
-  padding: 8px 6px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
-  border-radius: 12px;
-  z-index: 1000;
-}
+  #reportListHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #ddd;
+    background: #f8f8f8;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+  }
+  #reportListHeader h3 {
+    margin: 0;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+  }
+  #closeListBtn {
+    background: #c20b0b;
+    border: none;
+    color: #fff;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  #closeListBtn:hover { opacity: 0.8; }
 
-/* Заголовок списка */
-#reportList h3 {
-  text-align: center;
-  font-size: 1.2em;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
-}
+  /* Элементы списка */
+  #reportsUL {
+    list-style: none;
+    margin: 0;
+    padding: 12px;
+  }
+  #reportsUL li {
+    background: #f9f9f9;
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-left: 5px solid #007bff;
+  }
+  #reportsUL li:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+  }
+  #reportsUL li b { display:block; color:#007bff; margin-bottom:4px; }
+  #reportsUL li small { color:#666; font-size:0.8em; }
 
-/* Элементы списка */
-#reportsUL li {
-  background: #f9f9f9;
-  margin-bottom: 7px;
-  padding: 7px 8px;
-  border-radius: 9px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.10);
-  cursor: pointer;
-  transition: transform 0.18s, box-shadow 0.18s;
-  border-left: 4px solid #007bff;
-  font-size: 0.97em;
-}
-#reportsUL li:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(0,0,0,0.18);
-}
-#reportsUL li b { display:block; color:#007bff; margin-bottom:3px; font-size:1em; }
-#reportsUL li small { color:#666; font-size:0.77em; }
+  /* === Модальное затемнение === */
+  #modalOverlay {
+    display: none;
+    position: fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
 
-    /* === Модальное затемнение === */
-    #modalOverlay {
-      display: none;
-      position: fixed;
-      top:0; left:0;
-      width:100%; height:100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 1000;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
+  /* === Модальное окно === */
+  #reportModal {
+    display: none;
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.85);
+    background: #fff;
+    padding: 20px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.5);
+    border-radius: 16px;
+    z-index: 1001;
+    min-width: 320px;
+    transition: all 0.3s ease;
+  }
+  #reportModal.show { display: block; transform: translate(-50%, -50%) scale(1); }
 
-    /* === Модальное окно === */
-    #reportModal {
-      display: none;
-      position: fixed;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%) scale(0.85);
-      background: #fff;
-      padding: 20px;
-      box-shadow: 0 0 25px rgba(0,0,0,0.5);
-      border-radius: 16px;
-      z-index: 1001;
-      min-width: 320px;
-      transition: all 0.3s ease;
-    }
-    #reportModal.show { display: block; transform: translate(-50%, -50%) scale(1); }
+  /* === Модалка - кнопки === */
+  #reportModal button {
+    padding: 12px 18px;
+    margin: 5px 5px 0 0;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  #addReportBtn { background: linear-gradient(to right, #007bff, #00c6ff); color:white; }
+  #addReportBtn:hover { opacity:0.85; }
+  #closeModalBtn { background:#6c757d; color:white; }
+  #closeModalBtn:hover { opacity:0.85; }
 
-    /* === Модалка - кнопки === */
-    #reportModal button {
-      padding: 12px 18px;
-      margin: 5px 5px 0 0;
-      border: none;
-      border-radius: 10px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
-    #addReportBtn { background: linear-gradient(to right, #007bff, #00c6ff); color:white; }
-    #addReportBtn:hover { opacity:0.85; }
-    #closeModalBtn { background:#6c757d; color:white; }
-    #closeModalBtn:hover { opacity:0.85; }
+  /* === Модалка - textarea === */
+  #reportComment {
+    width:100%;
+    border-radius:8px;
+    border:1px solid #ccc;
+    padding:8px;
+    font-size:1em;
+  }
 
-    /* === Модалка - textarea === */
-    #reportComment {
-      width:100%;
-      border-radius:8px;
-      border:1px solid #ccc;
-      padding:8px;
-      font-size:1em;
-    }
-
-    /* === Адаптив для мобильных === */
-    @media (max-width: 600px) {
-      #header, #footer { font-size:1.6em; padding:10px 0; }
-      .controls { bottom:70px; right:10px; }
-      .controls button { font-size:15px; padding:14px 20px; }
-      #reportList {
-        width: 100vw;
-        left: 0;
-        right: 0;
-        top: unset;
-        bottom: 0;
-        max-height: 50vh;
-        height: 50vh;
-        border-radius: 16px 16px 0 0;
-        padding: 10px 8px 32px 8px;
-        box-shadow: 0 -4px 18px rgba(0,0,0,0.18);
-        transition: transform 0.3s cubic-bezier(.4,0,.2,1);
-        transform: translateY(100%);
-        display: none;
-        flex-direction: column;
-        z-index: 2000;
-      }
-      #reportList.show {
-        transform: translateY(0);
-        display: flex;
-      }
-      #reportList .close-list-btn {
-        display: block;
-        position: absolute;
-        top: 8px;
-        right: 16px;
-        background: #007bff;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 6px 14px;
-        font-size: 1em;
-        font-weight: bold;
-        z-index: 2010;
-      }
-      #reportsUL li { font-size: 13px; padding: 7px 8px; }
-      #reportModal { width:90%; min-width:unset; padding:16px; }
-      #reportModal textarea { font-size:14px; padding:8px; }
-      #addReportBtn, #closeModalBtn { font-size:14px; padding:14px 18px; }
-    }
+  /* === Адаптив для мобильных === */
+  @media (max-width: 600px) {
+    #header { font-size:1.6em; padding:10px 0; }
+    .controls { top:70px; left:10px; }
+    .controls button { font-size:15px; padding:14px 20px; }
+    #reportList { height: 60%; }
+    #reportsUL li { font-size:14px; padding:12px 14px; }
+    #reportModal { width:90%; min-width:unset; padding:16px; }
+    #reportModal textarea { font-size:14px; padding:8px; }
+    #addReportBtn, #closeModalBtn { font-size:14px; padding:14px 18px; }
+  }
 </style>
+
 
 </head>
 
