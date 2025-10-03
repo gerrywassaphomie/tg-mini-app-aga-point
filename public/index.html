@@ -1,226 +1,201 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>AGA POINT</title>
+  <meta charset="UTF-8">
+  <title>AGA POINT Mini App</title>
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Telegram SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-<!-- Telegram Web App SDK -->
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    /* === Общие стили === */
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f6f8;
+    }
 
-<style>
-  /* Верхняя панель */
-  #header {
-    width: 100%;
-    text-align: center;
-    font-size: 2em;
-    font-weight: bold;
-    color: white;
-    background: linear-gradient(135deg, #6c63ff, #00c6ff);
-    padding: 12px 0;
-    border-top: 4px solid #444;
-    border-bottom: 4px solid #444;
-    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-    position: relative;
-    z-index: 1000;
-  }
+    /* === Header === */
+    #header {
+      width: 100%;
+      text-align: center;
+      font-size: 2em;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(135deg, #000000, #000000);
+      padding: 12px 0;
+      border-top: 4px solid #444;
+      border-bottom: 4px solid #444;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+      position: relative;
+      z-index: 1000;
+    }
 
-  /* Карта */
-  #map { height: 90vh; width: 100%; }
+    /* === Карта === */
+    #map { height: 90vh; width: 100%; }
 
-  /* Кнопки Report/List */
-  .controls { 
-    position: absolute; 
-    top: 70px; 
-    left: 80px; 
-    z-index: 1001;
-  }
-  .controls button { 
-    padding: 10px; margin: 5px; border:none; border-radius:8px; 
-    background: linear-gradient(to right, #007bff, #00c6ff); color:white; 
-    cursor:pointer; font-weight:bold; transition: 0.2s; 
-  }
-  .controls button:hover { opacity:0.8; }
+    /* === Кнопки Report/List === */
+    .controls {
+      position: absolute;
+      top: 80px;
+      left: 15px;
+      z-index: 1001;
+      display: flex;
+      flex-direction: column;
+    }
+    .controls button {
+      padding: 12px 20px;
+      margin: 5px 0;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      background: linear-gradient(to right, #007bff, #00c6ff);
+      color: white;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .controls button:hover { opacity: 0.85; }
 
-  /* Список репортов */
-  #reportList {
-    display:none; 
-    position:absolute; top:120px; right:10px; 
-    width:250px; max-height:80vh; 
-    overflow:auto; background:white; 
-    padding:10px; box-shadow:0 0 15px rgba(0,0,0,0.3); border-radius:10px; z-index:1000;
-  }
-  #reportList h3 { text-align:center; }
+    /* === Список репортов === */
+    #reportList {
+      display: none;
+      position: absolute;
+      top: 130px;
+      right: 10px;
+      width: 280px;
+      max-height: 75vh;
+      overflow-y: auto;
+      background: #ffffff;
+      padding: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      border-radius: 14px;
+      z-index: 1000;
+    }
+    #reportList h3 {
+      text-align: center;
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    #reportsUL li {
+      background: #f9f9f9;
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border-left: 5px solid #007bff;
+    }
+    #reportsUL li:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+    }
+    #reportsUL li b { display:block; color:#007bff; margin-bottom:4px; }
+    #reportsUL li small { color:#666; font-size:0.8em; }
 
-  /* Модальное затемнение */
-  #modalOverlay {
-    display: none;
-    position: fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 1000;
-    opacity:0;
-    transition: opacity 0.3s ease;
-  }
+    /* === Модальное затемнение === */
+    #modalOverlay {
+      display: none;
+      position: fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
 
-  /* Модальное окно */
-  #reportModal {
-    display: none;
-    position: fixed;
-    top:50%;
-    left:50%;
-    transform: translate(-50%, -50%) scale(0.8);
-    background: #fff;
-    padding: 20px;
-    box-shadow:0 0 25px rgba(0,0,0,0.5);
-    border-radius: 12px;
-    z-index: 1001;
-    min-width: 300px;
-    transition: all 0.3s ease;
-  }
+    /* === Модальное окно === */
+    #reportModal {
+      display: none;
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.85);
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.5);
+      border-radius: 16px;
+      z-index: 1001;
+      min-width: 320px;
+      transition: all 0.3s ease;
+    }
+    #reportModal.show { display: block; transform: translate(-50%, -50%) scale(1); }
 
-  #reportModal.show { display: block; transform: translate(-50%, -50%) scale(1); }
+    /* === Модалка - кнопки === */
+    #reportModal button {
+      padding: 12px 18px;
+      margin: 5px 5px 0 0;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+    #addReportBtn { background: linear-gradient(to right, #007bff, #00c6ff); color:white; }
+    #addReportBtn:hover { opacity:0.85; }
+    #closeModalBtn { background:#6c757d; color:white; }
+    #closeModalBtn:hover { opacity:0.85; }
 
-  /* Кнопки модалки */
-  #reportModal button {
-    padding: 10px 16px; margin: 5px; border:none; border-radius:8px; font-weight:bold;
-    cursor:pointer; transition:0.2s ease;
-  }
-  #addReportBtn { background: linear-gradient(to right, #007bff, #00c6ff); color:white; }
-  #addReportBtn:hover { opacity:0.8; }
-  #closeModalBtn { background: #6c757d; color:white; }
-  #closeModalBtn:hover { opacity:0.8; }
+    /* === Модалка - textarea === */
+    #reportComment {
+      width:100%;
+      border-radius:8px;
+      border:1px solid #ccc;
+      padding:8px;
+      font-size:1em;
+    }
 
-  /* Текстarea */
-  #reportComment { width:100%; border-radius:6px; border:1px solid #ccc; padding:6px; }
-
-  /* Список репортов */
-#reportList {
-  display:none; 
-  position:absolute; top:120px; right:10px; 
-  width:280px; max-height:80vh; 
-  overflow:auto; background: #f8f9fa; 
-  padding:10px; box-shadow:0 8px 20px rgba(0,0,0,0.25); border-radius:12px; z-index:1000;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-#reportList h3 {
-  text-align:center;
-  margin-bottom:10px;
-  font-weight:bold;
-  color:#333;
-  font-size:1.3em;
-}
-
-/* Отдельная карточка репорта */
-#reportsUL li {
-  background:white;
-  margin-bottom:8px;
-  padding:8px 10px;
-  border-radius:10px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-  cursor:pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  border-left: 5px solid #007bff; /* градиентная полоска слева */
-}
-
-#reportsUL li:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.25);
-}
-
-#reportsUL li b {
-  color:#007bff;
-  display:block;
-  margin-bottom:4px;
-}
-
-#reportsUL li small {
-  color:#666;
-  font-size:0.8em;
-}
-/* Мобильная адаптация */
-@media (max-width: 600px) {
-  #header {
-    font-size: 1.5em;
-    padding: 10px 0;
-  }
-
-  .controls {
-    top: 60px;
-    left: 10px;
-  }
-
-  .controls button {
-    font-size: 14px;
-    padding: 12px 18px;
-  }
-
-  #reportList {
-    width: 90%;
-    top: 100px;
-    right: 5%;
-    max-height: 70vh;
-    padding: 10px;
-  }
-
-  #reportsUL li {
-    font-size: 14px;
-    padding: 10px 12px;
-  }
-
-  #reportModal {
-    width: 90%;
-    min-width: unset;
-    padding: 16px;
-  }
-
-  #reportModal textarea {
-    font-size: 14px;
-  }
-
-  #addReportBtn, #closeModalBtn {
-    font-size: 14px;
-    padding: 12px 16px;
-  }
-}
-
-</style>
+    /* === Адаптив для мобильных === */
+    @media (max-width: 600px) {
+      #header { font-size:1.6em; padding:10px 0; }
+      .controls { top:70px; left:10px; }
+      .controls button { font-size:15px; padding:14px 20px; }
+      #reportList { width:90%; top:120px; right:5%; max-height:70vh; padding:10px; }
+      #reportsUL li { font-size:14px; padding:12px 14px; }
+      #reportModal { width:90%; min-width:unset; padding:16px; }
+      #reportModal textarea { font-size:14px; padding:8px; }
+      #addReportBtn, #closeModalBtn { font-size:14px; padding:14px 18px; }
+    }
+  </style>
 </head>
+
 <body>
-<div id="header">AGA POINT</div>
+  <div id="header">AGA POINT</div>
 
-<div id="map"></div>
+  <div id="map"></div>
 
-<div class="controls">
-  <button id="reportBtn">Report</button>
-  <button id="listBtn">List</button>
-</div>
+  <div class="controls">
+    <button id="reportBtn">Report</button>
+    <button id="listBtn">List</button>
+  </div>
 
-<!-- Список репортов -->
-<div id="reportList">
-  <h3>Reports</h3>
-  <ul id="reportsUL" style="list-style:none; padding-left:0;"></ul>
-</div>
+  <!-- Список репортов -->
+  <div id="reportList">
+    <h3>Reports</h3>
+    <ul id="reportsUL"></ul>
+  </div>
 
-<!-- Модальное окно -->
-<div id="modalOverlay"></div>
-<div id="reportModal">
-  <h3>Add Report</h3>
-  <p id="reportLocation">Location: </p>
-  <textarea id="reportComment" placeholder="Enter comment..." rows="4"></textarea>
-  <br>
-  <button id="addReportBtn">Add</button>
-  <button id="closeModalBtn">Close</button>
-</div>
+  <!-- Модальное окно -->
+  <div id="modalOverlay"></div>
+  <div id="reportModal">
+    <h3>Add Report</h3>
+    <p id="reportLocation">Location: </p>
+    <textarea id="reportComment" placeholder="Enter comment..." rows="4"></textarea>
+    <br><br>
+    <button id="addReportBtn">Add</button>
+    <button id="closeModalBtn">Close</button>
+  </div>
 
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="app.js"></script>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- App JS -->
+  <script src="app.js"></script>
 </body>
 </html>
