@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AGA POINT</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    /* Верхняя панель */
+    #header {
+      width: 100%;
+      text-align: center;
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #fff;
+      background: linear-gradient(135deg, #6c63ff, #00c6ff);
+      padding: 12px 0;
+      border-top: 4px solid #444;
+      border-bottom: 4px solid #444;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+      position: relative;
+      z-index: 1000;
+    }
+
+    /* Карта */
+    #map { height: 90vh; width: 100%; }
+
+    /* Кнопки Report/List */
+    .controls { 
+      position: absolute; 
+      top: 70px; 
+      left: 80px; 
+      z-index: 1001;
+    }
+    .controls button { padding: 10px; margin: 5px; border:none; border-radius:5px; background:#007bff; color:white; cursor:pointer; transition: background 0.2s ease; }
+    .controls button:hover { background:#0056b3; }
+
+    /* Список репортов */
+    #reportList {
+      display:none; 
+      position:absolute; top:120px; right:10px; 
+      width:250px; max-height:80vh; 
+      overflow:auto; background:white; 
+      padding:10px; box-shadow:0 0 10px rgba(0,0,0,0.3); z-index:1000;
+    }
+
+    #reportList h3 { text-align:center; }
+
+    /* Модальное затемнение */
+    #modalOverlay {
+      display: none;
+      position: fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      opacity:0;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Модальное окно */
+    #reportModal {
+      display: none;
+      position: fixed;
+      top:50%;
+      left:50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: #fff;
+      padding: 20px;
+      box-shadow:0 0 20px rgba(0,0,0,0.5);
+      border-radius: 10px;
+      z-index: 1001;
+      min-width: 300px;
+      transition: all 0.3s ease;
+    }
+
+    #reportModal.show { display: block; transform: translate(-50%, -50%) scale(1); }
+
+    /* Кнопки внутри модалки */
+    #reportModal button {
+      padding: 8px 12px; 
+      margin: 5px; 
+      border:none; 
+      border-radius:5px; 
+      cursor:pointer; 
+      transition: background 0.2s ease;
+    }
+    #addReportBtn { background:#007bff; color:white; }
+    #addReportBtn:hover { background:#0056b3; }
+    #closeModalBtn { background:#6c757d; color:white; }
+    #closeModalBtn:hover { background:#5a6268; }
+  </style>
+</head>
+<body>
+  <div id="header">AGA POINT</div>
+
+  <div id="map"></div>
+
+  <div class="controls">
+    <button id="reportBtn">Report</button>
+    <button id="listBtn">List</button>
+  </div>
+
+  <!-- Список репортов -->
+  <div id="reportList">
+    <h3>Reports</h3>
+    <ul id="reportsUL" style="list-style:none; padding-left:0;"></ul>
+  </div>
+
+  <!-- Модальное окно -->
+  <div id="modalOverlay"></div>
+  <div id="reportModal">
+    <h3>Add Report</h3>
+    <p id="reportLocation">Location: </p>
+    <textarea id="reportComment" placeholder="Enter comment..." rows="4" style="width:100%"></textarea>
+    <br>
+    <button id="addReportBtn">Add</button>
+    <button id="closeModalBtn">Close</button>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
