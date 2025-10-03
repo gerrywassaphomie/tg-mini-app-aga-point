@@ -31,7 +31,7 @@
       font-size: 2em;
       font-weight: bold;
       color: white;
-      background: linear-gradient(135deg, #72dd1b, #e9e9e9);
+      background: linear-gradient(135deg, #ff4800, #e9e9e9);
       padding: 12px 0;
       border-top: 4px solid #444;
       border-bottom: 4px solid #444;
@@ -264,7 +264,8 @@ function isMobile() {
 
 function showReportList() {
   if (isMobile()) {
-    reportList.classList.add('show');
+    reportList.style.display = 'flex';
+    setTimeout(() => { reportList.classList.add('show'); }, 10);
     closeListBtn.style.display = 'block';
   } else {
     reportList.style.display = 'block';
@@ -277,8 +278,10 @@ function hideReportList() {
   if (isMobile()) {
     reportList.classList.remove('show');
     setTimeout(() => { reportList.style.display = 'none'; }, 300);
+    closeListBtn.style.display = 'none';
   } else {
     reportList.style.display = 'none';
+    closeListBtn.style.display = 'none';
   }
 }
 
