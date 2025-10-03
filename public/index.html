@@ -75,15 +75,15 @@
    #reportList {
   display: none;
   position: fixed; /* фиксируем относительно экрана */
-  top: 120px; /* чуть ниже header */
+  top: 90px; /* еще ниже header */
   right: 10px; /* отступ от края */
-  width: 260px; /* компактная ширина */
-  max-height: 60vh; /* не перекрывает весь экран */
+  width: 200px; /* еще компактнее */
+  max-height: 35vh; /* заметно меньше по высоте */
   overflow-y: auto;
   background: #ffffff;
-  padding: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-  border-radius: 14px;
+  padding: 8px 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+  border-radius: 12px;
   z-index: 1000;
 }
 
@@ -99,20 +99,21 @@
 /* Элементы списка */
 #reportsUL li {
   background: #f9f9f9;
-  margin-bottom: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  margin-bottom: 7px;
+  padding: 7px 8px;
+  border-radius: 9px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.10);
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  border-left: 5px solid #007bff;
+  transition: transform 0.18s, box-shadow 0.18s;
+  border-left: 4px solid #007bff;
+  font-size: 0.97em;
 }
 #reportsUL li:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.18);
 }
-#reportsUL li b { display:block; color:#007bff; margin-bottom:4px; }
-#reportsUL li small { color:#666; font-size:0.8em; }
+#reportsUL li b { display:block; color:#007bff; margin-bottom:3px; font-size:1em; }
+#reportsUL li small { color:#666; font-size:0.77em; }
 
     /* === Модальное затемнение === */
     #modalOverlay {
@@ -171,8 +172,8 @@
       #header, #footer { font-size:1.6em; padding:10px 0; }
       .controls { bottom:70px; right:10px; }
       .controls button { font-size:15px; padding:14px 20px; }
-     #reportList { width: 80%; top: 100px; right: 5%; max-height: 50vh; padding: 10px; }
-  #reportsUL li { font-size: 14px; padding: 10px 12px; }
+      #reportList { width: 90%; top: 90px; right: 5%; max-height: 35vh; padding: 7px 4px; }
+      #reportsUL li { font-size: 13px; padding: 7px 8px; }
       #reportModal { width:90%; min-width:unset; padding:16px; }
       #reportModal textarea { font-size:14px; padding:8px; }
       #addReportBtn, #closeModalBtn { font-size:14px; padding:14px 18px; }
