@@ -14,7 +14,7 @@
 
   
 
-  <style>
+ <style>
     /* === Общие стили === */
     body, html {
       margin: 0;
@@ -24,8 +24,8 @@
       background: #f4f6f8;
     }
 
-    /* === Header === */
-    #header {
+    /* === Header и Footer === */
+    #header, #footer {
       width: 100%;
       text-align: center;
       font-size: 2em;
@@ -40,14 +40,20 @@
       z-index: 1000;
     }
 
+    #footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+    }
+
     /* === Карта === */
     #map { height: 90vh; width: 100%; }
 
-    /* === Кнопки Report/List === */
+    /* === Кнопки Report/List (правый нижний угол) === */
     .controls {
-      position: absolute;
-      top: 80px;
-      left: 15px;
+      position: fixed;
+      bottom: 80px; /* чуть выше footer */
+      right: 15px;
       z-index: 1001;
       display: flex;
       flex-direction: column;
@@ -158,8 +164,8 @@
 
     /* === Адаптив для мобильных === */
     @media (max-width: 600px) {
-      #header { font-size:1.6em; padding:10px 0; }
-      .controls { top:70px; left:10px; }
+      #header, #footer { font-size:1.6em; padding:10px 0; }
+      .controls { bottom:70px; right:10px; }
       .controls button { font-size:15px; padding:14px 20px; }
       #reportList { width:90%; top:120px; right:5%; max-height:70vh; padding:10px; }
       #reportsUL li { font-size:14px; padding:12px 14px; }
@@ -167,7 +173,8 @@
       #reportModal textarea { font-size:14px; padding:8px; }
       #addReportBtn, #closeModalBtn { font-size:14px; padding:14px 18px; }
     }
-  </style>
+</style>
+
 </head>
 
 <body>
@@ -176,9 +183,13 @@
   <div id="map"></div>
 
   <div class="controls">
-    <button id="reportBtn">Report</button>
-    <button id="listBtn">List</button>
-  </div>
+  <button id="reportBtn">Report</button>
+  <button id="listBtn">List</button>
+</div>
+
+<div id="footer">AGA POINT</div>
+
+
 
   <!-- Список репортов -->
   <div id="reportList">
