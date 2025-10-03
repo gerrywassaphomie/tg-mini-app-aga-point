@@ -31,7 +31,7 @@
     font-size: 2em;
     font-weight: bold;
     color: white;
-    background: linear-gradient(135deg, #3418d3, #c20b0b);
+    background: linear-gradient(135deg, #d3c618, #c20b0b);
     padding: 12px 0;
     border-top: 4px solid #444;
     border-bottom: 4px solid #444;
@@ -40,17 +40,33 @@
     z-index: 1000;
   }
 
+  /* === Footer === */
+  #footer {
+    width: 100%;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #c20b0b, #d3c618);
+    padding: 8px 0;
+    border-top: 4px solid #444;
+    box-shadow: 0 -3px 8px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 1000;
+  }
+
   /* === Карта === */
-  #map { height: 90vh; width: 100%; }
+  #map { height: calc(90vh - 40px); width: 100%; }
 
   /* === Кнопки Report/List === */
   .controls {
     position: absolute;
-    top: 80px;
-    left: 15px;
+    bottom: 20px;
+    right: 15px;
     z-index: 1001;
     display: flex;
     flex-direction: column;
+    align-items: flex-end;
   }
   .controls button {
     padding: 12px 20px;
@@ -62,6 +78,7 @@
     color: white;
     cursor: pointer;
     transition: 0.2s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
   }
   .controls button:hover { opacity: 0.85; }
 
@@ -78,15 +95,23 @@
     padding: 12px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.25);
     border-radius: 14px;
-    z-index: 1000;
-    transition: transform 0.3s ease;
+    z-index: 1002;
   }
   #reportList h3 {
     text-align: center;
     font-size: 1.3em;
     font-weight: bold;
     color: #333;
-    margin-bottom: 10px;
+    margin: 0 0 10px;
+  }
+  #closeListBtn {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #666;
+    cursor: pointer;
   }
   #reportsUL li {
     background: #f9f9f9;
@@ -196,10 +221,11 @@
 
   <!-- Список репортов -->
   <div id="reportList">
-    <button class="close-list-btn" style="display:none">Закрыть</button>
-    <h3>Reports</h3>
-    <ul id="reportsUL"></ul>
-  </div>
+  <span id="closeListBtn">&times;</span>
+  <h3>Reports</h3>
+  <ul id="reportsUL"></ul>
+</div>
+
 
   <!-- Модальное окно -->
   <div id="modalOverlay"></div>
