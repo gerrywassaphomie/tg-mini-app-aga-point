@@ -111,6 +111,11 @@ map.on('click', async (e) => {
   };
 });
 
+document.getElementById('closeListBtn').onclick = () => {
+  reportList.style.display = 'none';
+};
+
+
 // === Кнопка Report (геолокация Telegram) ===
 document.getElementById('reportBtn').addEventListener('click', () => {
   Telegram.WebApp.getLocation({})
