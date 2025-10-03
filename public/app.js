@@ -46,7 +46,7 @@ function formatTimeAgo(timestamp) {
 function addReport(lat, lng, address, comment){
   const timestamp = Date.now();
   const popupContent = `<b>${address}</b><br>${comment || "No comment"}<br><small style="color:#666">${formatTimeAgo(timestamp)}</small>`;
-  const marker = L.marker([lat,lng],{color:'red'}).addTo(map).bindPopup(popupContent);
+  const marker = L.marker([lat,lng]).addTo(map).bindPopup(popupContent);
   reports.push({marker, address, comment, timestamp});
   updateReportList();
 
