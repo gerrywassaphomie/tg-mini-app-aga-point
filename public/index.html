@@ -31,7 +31,7 @@
       font-size: 2em;
       font-weight: bold;
       color: white;
-      background: linear-gradient(135deg, #dd1bd0, #e9e9e9);
+      background: linear-gradient(135deg, #72dd1b, #e9e9e9);
       padding: 12px 0;
       border-top: 4px solid #444;
       border-bottom: 4px solid #444;
@@ -186,11 +186,12 @@
         transition: transform 0.3s cubic-bezier(.4,0,.2,1);
         transform: translateY(100%);
         display: none;
+        flex-direction: column;
         z-index: 2000;
       }
       #reportList.show {
         transform: translateY(0);
-        display: block;
+        display: flex;
       }
       #reportList .close-list-btn {
         display: block;
@@ -251,7 +252,6 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <!-- App JS -->
   <script src="app.js"></script>
-</body>
 <script>
 // Мобильное поведение списка
 const reportList = document.getElementById('reportList');
@@ -266,7 +266,6 @@ function showReportList() {
   if (isMobile()) {
     reportList.classList.add('show');
     closeListBtn.style.display = 'block';
-    reportList.style.display = 'block';
   } else {
     reportList.style.display = 'block';
     reportList.classList.remove('show');
