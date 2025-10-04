@@ -23,7 +23,7 @@ const closeListBtn = document.getElementById('closeListBtn');
 
 let reports = [];
 
-// Открытие/закрытие модалки
+// Функции открытия/закрытия модалки
 function openModal() {
   reportModal.classList.add('show');
   modalOverlay.classList.add('show');
@@ -51,23 +51,15 @@ function formatTimeAgo(timestamp) {
   const diff = Math.floor((Date.now() - timestamp) / 1000);
   if (diff < 60) return 'just now';
   if (diff < 3600)
-    return `${Math.floor(diff / 60)} minute${
-      Math.floor(diff / 60) === 1 ? '' : 's'
-    } ago`;
-  return `${Math.floor(diff / 3600)} hour${
-    Math.floor(diff / 3600) === 1 ? '' : 's'
-  } ago`;
+    return `${Math.floor(diff / 60)} minute${Math.floor(diff / 60) === 1 ? '' : 's'} ago`;
+  return `${Math.floor(diff / 3600)} hour${Math.floor(diff / 3600) === 1 ? '' : 's'} ago`;
 }
 
 // Добавление репорта
 function addReport(lat, lng, address, comment) {
   const timestamp = Date.now();
-  const popupContent = `<b>${address}</b><br>${comment || 'No comment'}<br><small style="color:#666">${formatTimeAgo(
-    timestamp
-  )}</small>`;
-  const marker = L.marker([lat, lng])
-    .addTo(map)
-    .bindPopup(popupContent);
+  const popupContent = `<b>${address}</b><br>${comment || 'No comment'}<br><small style="color:#666">${formatTimeAgo(timestamp)}</small>`;
+  const marker = L.marker([lat, lng]).addTo(map).bindPopup(popupContent);
   reports.push({ marker, address, comment, timestamp });
   updateReportList();
 
@@ -82,49 +74,36 @@ function addReport(lat, lng, address, comment) {
 // Обновление списка репортов
 function updateReportList() {
   reportsUL.innerHTML = '';
-  [...reports]
-    .sort((a, b) => b.timestamp - a.timestamp)
-    .forEach((r) => {
-      const li = document.createElement('li');
-      li.innerHTML = `<b>${r.address}</b><br>${r.comment || 'No comment'}<br><small style="color:#666">${formatTimeAgo(
-        r.timestamp
-      )}</small>`;
-      li.onclick = () => {
-        map.setView(r.marker.getLatLng(), 15);
-        r.marker.openPopup();
-      };
-      reportsUL.appendChild(li);
-    });
+  [...reports].sort((a, b) => b.timestamp - a.timestamp).forEach((r) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<b>${r.address}</b><br>${r.comment || 'No comment'}<br><small style="color:#666">${formatTimeAgo(r.timestamp)}</small>`;
+    li.onclick = () => { map.setView(r.marker.getLatLng(), 15); r.marker.openPopup(); };
+    reportsUL.appendChild(li);
+  });
 }
 
-// Клик по карте
+// Клик по карте для добавления репорта
 map.on('click', async (e) => {
-  const lat = e.latlng.lat,
-    lng = e.latlng.lng;
+  const lat = e.latlng.lat, lng = e.latlng.lng;
   const address = await getAddress(lat, lng);
   reportLocation.textContent = `Location: ${address}`;
   reportComment.value = '';
   openModal();
-  addReportBtn.onclick = () => {
-    addReport(lat, lng, address, reportComment.value || 'No comment');
-    closeModal();
-  };
+  addReportBtn.onclick = () => { addReport(lat, lng, address, reportComment.value || 'No comment'); closeModal(); };
 });
 
-// === Кнопка Report (геолокация Telegram) ===
+// === Кнопка Report (запрос геолокации Telegram) ===
 document.getElementById('reportBtn').addEventListener('click', () => {
   Telegram.WebApp.getLocation({ request_access: true })
     .then((loc) => {
-      const lat = loc?.latitude || map.getCenter().lat;
-      const lng = loc?.longitude || map.getCenter().lng;
+      if (!loc) return;
+      const lat = loc.latitude;
+      const lng = loc.longitude;
       getAddress(lat, lng).then((address) => {
         reportLocation.textContent = `Location: ${address}`;
         reportComment.value = '';
         openModal();
-        addReportBtn.onclick = () => {
-          addReport(lat, lng, address, reportComment.value || 'No comment');
-          closeModal();
-        };
+        addReportBtn.onclick = () => { addReport(lat, lng, address, reportComment.value || 'No comment'); closeModal(); };
       });
     })
     .catch(() => {
@@ -134,14 +113,10 @@ document.getElementById('reportBtn').addEventListener('click', () => {
         reportLocation.textContent = `Location: ${address}`;
         reportComment.value = '';
         openModal();
-        addReportBtn.onclick = () => {
-          addReport(center.lat, center.lng, address, reportComment.value || 'No comment');
-          closeModal();
-        };
+        addReportBtn.onclick = () => { addReport(center.lat, center.lng, address, reportComment.value || 'No comment'); closeModal(); };
       });
     });
 });
-
 
 // Закрытие модалки
 closeModalBtn.onclick = closeModal;
@@ -149,9 +124,9 @@ modalOverlay.onclick = closeModal;
 
 // === List открытие/закрытие ===
 listBtn.addEventListener('click', () => {
-  reportList.style.display = 'flex'; // теперь flex для корректного скролла
+  reportList.style.display = 'flex';
   reportList.style.flexDirection = 'column';
-  controls.style.display = 'none'; // скрываем кнопки
+  controls.style.display = 'none'; // скрываем кнопки за list
 });
 
 closeListBtn.addEventListener('click', () => {
