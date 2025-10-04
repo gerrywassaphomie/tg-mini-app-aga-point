@@ -31,7 +31,7 @@ body, html {
   font-size: 2em;
   font-weight: bold;
   color: white;
-  background: linear-gradient(135deg, #06a12f, #bf1f4f);
+  background: linear-gradient(135deg, #f8ee31, #bf1f4f);
   padding: 12px 0;
   border-top: 4px solid #444;
   border-bottom: 4px solid #444;
@@ -152,7 +152,7 @@ body, html {
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 45%;          /* фиксированная высота для скролла */
+  height: 45%;
   background: #fff;
   border-top: 3px solid #444;
   box-shadow: 0 -2px 8px rgba(0,0,0,0.25);
@@ -161,6 +161,7 @@ body, html {
   z-index: 1250;
   border-radius: 14px 14px 0 0;
   overflow: hidden;
+  display: flex; /* обязательно flex */
 }
 
 /* Шапка списка */
@@ -190,11 +191,11 @@ body, html {
 
 /* Контейнер со скроллом */
 #reportsUL {
-  flex: 1 1 auto;        /* растягивается по высоте */
-  list-style: none;
+  flex: 1; /* растягивается на оставшуюся высоту */
   margin: 0;
   padding: 8px 12px;
-  overflow-y: auto;      /* скролл внутри */
+  list-style: none;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch; /* плавный скролл на iOS */
 }
 
@@ -232,7 +233,6 @@ body, html {
 #reportsUL::-webkit-scrollbar-thumb:hover {
   background: #999;
 }
-
 
 /* === Адаптив для мобильных === */
 @media (max-width: 600px) {
