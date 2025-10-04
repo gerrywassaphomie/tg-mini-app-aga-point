@@ -177,7 +177,7 @@ document.getElementById('reportBtn').addEventListener('click', () => {
       addReportBtn.onclick = () => { addReport(userLat, userLng, address, reportComment.value || 'No comment'); closeModal(); };
     });
   } else {
-    alert("Не удалось определить геолокацию. Попробуйте позже.");
+    alert("Turn on geolocation.");
   }
 });
 
