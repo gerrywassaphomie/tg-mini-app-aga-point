@@ -31,7 +31,7 @@ body, html {
   font-size: 2em;
   font-weight: bold;
   color: white;
-  background: linear-gradient(135deg, #f8ee31, #bf1f4f);
+  background: linear-gradient(135deg, #6b6827, #fcaec6);
   padding: 12px 0;
   border-top: 4px solid #444;
   border-bottom: 4px solid #444;
@@ -156,12 +156,11 @@ body, html {
   background: #fff;
   border-top: 3px solid #444;
   box-shadow: 0 -2px 8px rgba(0,0,0,0.25);
-  display: none;
+  display: none; /* изначально скрыт */
   flex-direction: column;
   z-index: 1250;
   border-radius: 14px 14px 0 0;
   overflow: hidden;
-  display: flex; /* обязательно flex */
 }
 
 /* Шапка списка */
@@ -233,6 +232,7 @@ body, html {
 #reportsUL::-webkit-scrollbar-thumb:hover {
   background: #999;
 }
+
 
 /* === Адаптив для мобильных === */
 @media (max-width: 600px) {

@@ -23,7 +23,7 @@ const closeListBtn = document.getElementById('closeListBtn');
 
 let reports = [];
 
-// Функции открытия/закрытия модалки
+// Открытие/закрытие модалки
 function openModal() {
   reportModal.classList.add('show');
   modalOverlay.classList.add('show');
@@ -97,7 +97,7 @@ function updateReportList() {
     });
 }
 
-// === Карта клик ===
+// Клик по карте
 map.on('click', async (e) => {
   const lat = e.latlng.lat,
     lng = e.latlng.lng;
@@ -111,12 +111,7 @@ map.on('click', async (e) => {
   };
 });
 
-document.getElementById('closeListBtn').onclick = () => {
-  reportList.style.display = 'none';
-};
-
-
-// === Кнопка Report (геолокация Telegram) ===
+// Кнопка Report (геолокация Telegram)
 document.getElementById('reportBtn').addEventListener('click', () => {
   Telegram.WebApp.getLocation({})
     .then((loc) => {
@@ -151,15 +146,17 @@ document.getElementById('reportBtn').addEventListener('click', () => {
     });
 });
 
-// === Закрытие модалки ===
+// Закрытие модалки
 closeModalBtn.onclick = closeModal;
 modalOverlay.onclick = closeModal;
 
 // === List открытие/закрытие ===
 listBtn.addEventListener('click', () => {
-  reportList.style.display = 'block';
+  reportList.style.display = 'flex'; // теперь flex для корректного скролла
+  reportList.style.flexDirection = 'column';
   controls.style.display = 'none'; // скрываем кнопки
 });
+
 closeListBtn.addEventListener('click', () => {
   reportList.style.display = 'none';
   controls.style.display = 'flex'; // возвращаем кнопки
