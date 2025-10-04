@@ -30,11 +30,28 @@ async function requestInitialLocation() {
   }
 }
 
-// === Установить позицию пользователя и отметить на карте ===
+let userLat = null;
+let userLng = null;
+let userMarker = null;
+
 function setUserLocation(lat, lng) {
+  userLat = lat;
+  userLng = lng;
+
   map.setView([lat, lng], 15);
-  L.marker([lat, lng]).addTo(map).bindPopup("📍 You are here").openPopup();
+
+  // Удаляем предыдущую точку если была
+  if (userMarker) map.removeLayer(userMarker);
+
+  // Добавляем зелёную точку (круг)
+  userMarker = L.circleMarker([lat, lng], {
+    radius: 8,
+    color: "#00FF00",
+    fillColor: "#00FF00",
+    fillOpacity: 1
+  }).addTo(map);
 }
+
 
 // Запуск при входе в Mini App
 document.addEventListener("DOMContentLoaded", requestInitialLocation);
@@ -124,31 +141,19 @@ map.on('click', async (e) => {
   addReportBtn.onclick = () => { addReport(lat, lng, address, reportComment.value || 'No comment'); closeModal(); };
 });
 
-// === Кнопка Report (запрос геолокации Telegram) ===
 document.getElementById('reportBtn').addEventListener('click', () => {
-  Telegram.WebApp.getLocation({ request_access: true })
-    .then((loc) => {
-      if (!loc) return;
-      const lat = loc.latitude;
-      const lng = loc.longitude;
-      getAddress(lat, lng).then((address) => {
-        reportLocation.textContent = `Location: ${address}`;
-        reportComment.value = '';
-        openModal();
-        addReportBtn.onclick = () => { addReport(lat, lng, address, reportComment.value || 'No comment'); closeModal(); };
-      });
-    })
-    .catch(() => {
-      // если пользователь отказался или не дал разрешение
-      const center = map.getCenter();
-      getAddress(center.lat, center.lng).then((address) => {
-        reportLocation.textContent = `Location: ${address}`;
-        reportComment.value = '';
-        openModal();
-        addReportBtn.onclick = () => { addReport(center.lat, center.lng, address, reportComment.value || 'No comment'); closeModal(); };
-      });
+  if (userLat && userLng) {
+    getAddress(userLat, userLng).then((address) => {
+      reportLocation.textContent = `Location: ${address}`;
+      reportComment.value = '';
+      openModal();
+      addReportBtn.onclick = () => { addReport(userLat, userLng, address, reportComment.value || 'No comment'); closeModal(); };
     });
+  } else {
+    alert("Не удалось определить геолокацию. Попробуйте позже.");
+  }
 });
+
 
 // Закрытие модалки
 closeModalBtn.onclick = closeModal;
