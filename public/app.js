@@ -8,54 +8,82 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
+// === Пульсирующая иконка пользователя ===
+const userIcon = L.divIcon({
+  html: '<div style="width:14px;height:14px;background:limegreen;border-radius:50%;box-shadow:0 0 6px rgba(0,0,0,0.6);animation:pulse 1.5s infinite;"></div>',
+  className: '',
+  iconSize: [14, 14]
+});
+
+const style = document.createElement('style');
+style.innerHTML = `
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 1; }
+}`;
+document.head.appendChild(style);
+
+let userLat = null;
+let userLng = null;
+let userMarker = null;
+let watching = false;
+
+// Установка/обновление локации
+function setUserLocation(lat, lng) {
+  userLat = lat;
+  userLng = lng;
+  map.setView([lat, lng], 15);
+
+  if (!userMarker) {
+    userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map).bindPopup('Your location');
+  } else {
+    userMarker.setLatLng([lat, lng]);
+  }
+}
+
 // === Автоматический запрос геолокации при запуске ===
 async function requestInitialLocation() {
-  // 1. Пробуем через Telegram (если у Telegram уже есть доступ)
   try {
     const loc = await Telegram.WebApp.getLocation({ request_access: true });
     if (loc && loc.latitude) {
       setUserLocation(loc.latitude, loc.longitude);
+      enableWatching();
       return;
     }
-  } catch (e) {
-    console.log("Telegram API didn't return location");
-  }
+  } catch {}
 
-  // 2. Если Telegram не дал — принудительно вызываем системный запрос
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-      (pos) => setUserLocation(pos.coords.latitude, pos.coords.longitude),
+      (pos) => { setUserLocation(pos.coords.latitude, pos.coords.longitude); enableWatching(); },
       () => console.warn("User denied geolocation")
     );
   }
 }
 
-let userLat = null;
-let userLng = null;
-let userMarker = null;
-
-function setUserLocation(lat, lng) {
-  userLat = lat;
-  userLng = lng;
-
-  map.setView([lat, lng], 15);
-
-  // Удаляем предыдущую точку если была
-  if (userMarker) map.removeLayer(userMarker);
-
-  // Добавляем зелёную точку (круг)
-  userMarker = L.circleMarker([lat, lng], {
-    radius: 8,
-    color: "#00FF00",
-    fillColor: "#00FF00",
-    fillOpacity: 1
-  }).addTo(map);
+function enableWatching() {
+  if (watching) return;
+  if (navigator.geolocation) {
+    navigator.geolocation.watchPosition((pos) => {
+      setUserLocation(pos.coords.latitude, pos.coords.longitude);
+    });
+    watching = true;
+  }
 }
 
-
-// Запуск при входе в Mini App
 document.addEventListener("DOMContentLoaded", requestInitialLocation);
 
+// Кнопка гео 📍
+document.getElementById('locateBtn').addEventListener('click', async () => {
+  if (userLat && userLng) {
+    map.setView([userLat, userLng], 15);
+    if (userMarker) userMarker.openPopup();
+  } else {
+    requestInitialLocation();
+  }
+});
+
+// ---------------------- Остальной код (репорты) ----------------------
 
 // DOM элементы
 const reportModal = document.getElementById('reportModal');
@@ -112,7 +140,6 @@ function addReport(lat, lng, address, comment) {
   reports.push({ marker, address, comment, timestamp });
   updateReportList();
 
-  // автоудаление через 5 минут
   setTimeout(() => {
     map.removeLayer(marker);
     reports = reports.filter((r) => r.marker !== marker);
@@ -154,7 +181,6 @@ document.getElementById('reportBtn').addEventListener('click', () => {
   }
 });
 
-
 // Закрытие модалки
 closeModalBtn.onclick = closeModal;
 modalOverlay.onclick = closeModal;
@@ -163,10 +189,10 @@ modalOverlay.onclick = closeModal;
 listBtn.addEventListener('click', () => {
   reportList.style.display = 'flex';
   reportList.style.flexDirection = 'column';
-  controls.style.display = 'none'; // скрываем кнопки за list
+  controls.style.display = 'none';
 });
 
 closeListBtn.addEventListener('click', () => {
   reportList.style.display = 'none';
-  controls.style.display = 'flex'; // возвращаем кнопки
+  controls.style.display = 'flex';
 });
