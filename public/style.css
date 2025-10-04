@@ -13,7 +13,7 @@
       font-size: 2em;
       font-weight: bold;
       color: white;
-      background: linear-gradient(135deg, #d2d2d2, #ff0000);
+      background: linear-gradient(135deg, #000000, #000000);
       padding: 12px 0;
       border-top: 4px solid #444;
       border-bottom: 4px solid #444;
@@ -25,11 +25,11 @@
     #footer {
       width: 100%;
       text-align: center;
-      font-size: 1.2em;
+      font-size: 2em;
       font-weight: bold;
       color: white;
-      background: linear-gradient(135deg, #240652, #cb1e91);
-      padding: 10px 0;
+      background: linear-gradient(135deg, #000000, #000000);
+      padding: 12px 0;
       border-top: 4px solid #444;
       border-bottom: 4px solid #444;
       box-shadow: 0 -3px 8px rgba(0,0,0,0.3);
@@ -195,7 +195,7 @@
     }
 
     #reportsUL li {
-      background: #f9f9f9;
+      background: #000000;
       margin-bottom: 6px;
       padding: 6px 10px;
       border-radius: 8px;
@@ -215,7 +215,7 @@
       display: block;
       font-size: 13px;
       margin-bottom: 2px;
-      color: #007bff;
+      color: #ffffff;
     }
 
     #reportsUL li small {
