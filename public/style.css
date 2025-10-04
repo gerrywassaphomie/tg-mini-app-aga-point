@@ -59,7 +59,7 @@
       border: none;
       border-radius: 10px;
       font-weight: bold;
-      background: linear-gradient(to right, #007bff, #00c6ff);
+      background: linear-gradient(to right, #000000, #000000);
       color: white;
       cursor: pointer;
       transition: 0.2s;
