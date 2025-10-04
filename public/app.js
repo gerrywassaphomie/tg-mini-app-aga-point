@@ -111,9 +111,9 @@ map.on('click', async (e) => {
   };
 });
 
-// Кнопка Report (геолокация Telegram)
+// === Кнопка Report (геолокация Telegram) ===
 document.getElementById('reportBtn').addEventListener('click', () => {
-  Telegram.WebApp.getLocation({})
+  Telegram.WebApp.getLocation({ request_access: true })
     .then((loc) => {
       const lat = loc?.latitude || map.getCenter().lat;
       const lng = loc?.longitude || map.getCenter().lng;
@@ -128,23 +128,20 @@ document.getElementById('reportBtn').addEventListener('click', () => {
       });
     })
     .catch(() => {
+      // если пользователь отказался или не дал разрешение
       const center = map.getCenter();
       getAddress(center.lat, center.lng).then((address) => {
         reportLocation.textContent = `Location: ${address}`;
         reportComment.value = '';
         openModal();
         addReportBtn.onclick = () => {
-          addReport(
-            center.lat,
-            center.lng,
-            address,
-            reportComment.value || 'No comment'
-          );
+          addReport(center.lat, center.lng, address, reportComment.value || 'No comment');
           closeModal();
         };
       });
     });
 });
+
 
 // Закрытие модалки
 closeModalBtn.onclick = closeModal;
