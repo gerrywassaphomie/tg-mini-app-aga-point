@@ -8,6 +8,38 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
+// === Автоматический запрос геолокации при запуске ===
+async function requestInitialLocation() {
+  // 1. Пробуем через Telegram (если у Telegram уже есть доступ)
+  try {
+    const loc = await Telegram.WebApp.getLocation({ request_access: true });
+    if (loc && loc.latitude) {
+      setUserLocation(loc.latitude, loc.longitude);
+      return;
+    }
+  } catch (e) {
+    console.log("Telegram API didn't return location");
+  }
+
+  // 2. Если Telegram не дал — принудительно вызываем системный запрос
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setUserLocation(pos.coords.latitude, pos.coords.longitude),
+      () => console.warn("User denied geolocation")
+    );
+  }
+}
+
+// === Установить позицию пользователя и отметить на карте ===
+function setUserLocation(lat, lng) {
+  map.setView([lat, lng], 15);
+  L.marker([lat, lng]).addTo(map).bindPopup("📍 You are here").openPopup();
+}
+
+// Запуск при входе в Mini App
+document.addEventListener("DOMContentLoaded", requestInitialLocation);
+
+
 // DOM элементы
 const reportModal = document.getElementById('reportModal');
 const modalOverlay = document.getElementById('modalOverlay');
