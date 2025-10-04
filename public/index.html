@@ -61,7 +61,7 @@ body, html {
 /* === Карта === */
 #map { height: calc(100vh - 130px); width: 100%; }
 
-/* === Кнопки Report/List === */
+/* === Кнопки === */
 .controls {
   position: fixed;
   bottom: 80px;
@@ -72,19 +72,42 @@ body, html {
   align-items: flex-end;
   gap: 10px;
 }
-.controls button {
-  padding: 12px 20px;
+
+/* Прямоугольные кнопки Report и List */
+.controls button#reportBtn,
+.controls button#listBtn {
+  width: 100px;
+  padding: 12px 0;
   border: none;
   border-radius: 10px;
   font-weight: bold;
   background: linear-gradient(to right, #007bff, #00c6ff);
   color: white;
   cursor: pointer;
-  transition: 0.2s;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.25);
   font-size: 15px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+  transition: 0.2s;
 }
-.controls button:hover { opacity: 0.85; }
+.controls button#reportBtn:hover,
+.controls button#listBtn:hover { opacity: 0.85; }
+
+/* Круглая кнопка геолокации */
+.controls button#locateBtn {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 20px;
+  background: linear-gradient(to right, #28a745, #4cd964);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+  transition: 0.2s;
+}
+.controls button#locateBtn:hover { opacity: 0.85; }
 
 /* === Модальное затемнение === */
 #modalOverlay {
@@ -233,16 +256,29 @@ body, html {
   background: #999;
 }
 
-
 /* === Адаптив для мобильных === */
 @media (max-width: 600px) {
   #header { font-size:1.6em; padding:10px 0; }
   #footer { font-size:1em; padding:8px 0; }
-  .controls button { font-size:14px; padding:10px 16px; }
+
+  .controls button#reportBtn,
+  .controls button#listBtn {
+    width: 80px;
+    font-size: 14px;
+    padding: 10px 0;
+  }
+
+  .controls button#locateBtn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
   #reportModal { width:90%; min-width:unset; padding:16px; }
   #reportModal textarea { font-size:14px; padding:8px; }
   #addReportBtn, #closeModalBtn { font-size:14px; padding:12px 16px; }
 }
+
 </style>
 
 
@@ -256,8 +292,9 @@ body, html {
   <div class="controls">
   <button id="reportBtn">Report</button>
   <button id="listBtn">List</button>
-  <button id="locateBtn" style="font-size:12px; padding:8px 12px;">📍</button>
+  <button id="locateBtn">📍</button>
 </div>
+
 
 
 <div id="footer">AGA POINT</div>
