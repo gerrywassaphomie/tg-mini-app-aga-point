@@ -36,39 +36,47 @@ document.head.appendChild(style);
 let userLat = null;
 let userLng = null;
 let userMarker = null;
-let watching = false;
 let isMapMovedByUser = false;
+let watchId = null;
 
 map.on('movestart', () => { isMapMovedByUser = true; });
 
 function setUserLocation(lat,lng){
-  userLat=lat; userLng=lng;
+  userLat = lat;
+  userLng = lng;
   if(!userMarker) {
-    userMarker=L.marker([lat,lng],{icon:userIcon}).addTo(map).bindPopup('Your location');
+    userMarker = L.marker([lat,lng],{icon:userIcon}).addTo(map).bindPopup('Your location');
     map.setView([lat,lng],15); // первый раз центрируем
   } else {
     userMarker.setLatLng([lat,lng]);
-    if(!isMapMovedByUser) {   // НЕ двигаем, если юзер сам трогал карту
-      map.setView([lat,lng]);
-    }
+    if(!isMapMovedByUser) map.setView([lat,lng]);
   }
 }
 
 async function requestInitialLocation(){
   try{
-    const loc=await Telegram.WebApp.getLocation({request_access:true});
+    const loc = await Telegram.WebApp.getLocation({request_access:true});
     if(loc && loc.latitude){ setUserLocation(loc.latitude,loc.longitude); enableWatching(); return; }
   } catch{}
   if(navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(pos=>{ setUserLocation(pos.coords.latitude,pos.coords.longitude); enableWatching(); }, ()=>console.warn("User denied geolocation"));
+    navigator.geolocation.getCurrentPosition(pos => {
+      setUserLocation(pos.coords.latitude,pos.coords.longitude);
+      enableWatching();
+    }, ()=>console.warn("User denied geolocation"));
   }
 }
 
 function enableWatching(){
-  if(watching) return;
+  if(!settings.geolocation || watchId !== null) return;
   if(navigator.geolocation){
-    navigator.geolocation.watchPosition(pos=>{ setUserLocation(pos.coords.latitude,pos.coords.longitude); });
-    watching=true;
+    watchId = navigator.geolocation.watchPosition(pos => { setUserLocation(pos.coords.latitude,pos.coords.longitude); });
+  }
+}
+
+function disableWatching(){
+  if(watchId !== null){
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
   }
 }
 
@@ -81,16 +89,16 @@ document.getElementById('locateBtn').addEventListener('click', async ()=>{
 });
 
 // ==== Репорты ====
-const reportModal=document.getElementById('reportModal');
-const modalOverlay=document.getElementById('modalOverlay');
-const reportLocation=document.getElementById('reportLocation');
-const reportComment=document.getElementById('reportComment');
-const addReportBtn=document.getElementById('addReportBtn');
-const closeModalBtn=document.getElementById('closeModalBtn');
-const reportList=document.getElementById('reportList');
-const reportsUL=document.getElementById('reportsUL');
-const listBtn=document.getElementById('listBtn');
-const closeListBtn=document.getElementById('closeListBtn');
+const reportModal = document.getElementById('reportModal');
+const modalOverlay = document.getElementById('modalOverlay');
+const reportLocation = document.getElementById('reportLocation');
+const reportComment = document.getElementById('reportComment');
+const addReportBtn = document.getElementById('addReportBtn');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const reportList = document.getElementById('reportList');
+const reportsUL = document.getElementById('reportsUL');
+const listBtn = document.getElementById('listBtn');
+const closeListBtn = document.getElementById('closeListBtn');
 
 const markersMap = {};
 
@@ -101,11 +109,16 @@ async function getAddress(lat,lng){
   try{
     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
     const data = await res.json();
-    return data.display_name||`${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    return data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
   } catch { return `${lat.toFixed(5)}, ${lng.toFixed(5)}`; }
 }
 
-function formatTimeAgo(ts){ const diff=Math.floor((Date.now()-ts)/1000); if(diff<60) return 'just now'; if(diff<3600) return `${Math.floor(diff/60)} minute${Math.floor(diff/60)===1?'':'s'} ago`; return `${Math.floor(diff/3600)} hour${Math.floor(diff/3600)===1?'':'s'} ago`; }
+function formatTimeAgo(ts){
+  const diff = Math.floor((Date.now() - ts)/1000);
+  if(diff < 60) return 'just now';
+  if(diff < 3600) return `${Math.floor(diff/60)} minute${Math.floor(diff/60)===1?'':'s'} ago`;
+  return `${Math.floor(diff/3600)} hour${Math.floor(diff/3600)===1?'':'s'} ago`;
+}
 
 function addReport(lat,lng,address,comment){
   const timestamp = Date.now();
@@ -119,9 +132,7 @@ function cleanOldReports() {
   db.ref('reports').once('value').then(snapshot => {
     const data = snapshot.val() || {};
     for (const id in data) {
-      if (now - data[id].timestamp > 5 * 60 * 1000) { // старше 5 минут
-        db.ref('reports/' + id).remove();
-      }
+      if (now - data[id].timestamp > 5 * 60 * 1000) db.ref('reports/' + id).remove();
     }
   });
 }
@@ -134,7 +145,7 @@ function updateReportList(data){
     const li = document.createElement('li');
     li.innerHTML=`<b>${r.address}</b><br>${r.comment||'No comment'}<br><small style="color:#666">${formatTimeAgo(r.timestamp)}</small>`;
     li.onclick=()=>{
-      const marker=Object.values(markersMap).find(m=>m.getLatLng().lat===r.lat && m.getLatLng().lng===r.lng);
+      const marker = Object.values(markersMap).find(m => m.getLatLng().lat === r.lat && m.getLatLng().lng === r.lng);
       if(marker){ map.setView(marker.getLatLng(),15); marker.openPopup(); }
     };
     reportsUL.appendChild(li);
@@ -184,12 +195,11 @@ modalOverlay.onclick = closeModal;
 
 // ==== Список репортов ====
 listBtn.addEventListener('click', ()=>{ 
-  cleanOldReports(); // <-- очистка перед показом
+  cleanOldReports(); // очистка перед показом
   reportList.style.display='flex'; 
   reportList.style.flexDirection='column'; 
 });
 closeListBtn.addEventListener('click', ()=>{ reportList.style.display='none'; });
-
 
 // ===== Настройки =====
 const settingsBtn = document.getElementById('settingsBtn');
@@ -221,30 +231,11 @@ backBtn.addEventListener('click', () => {
   settingsScreen.classList.remove('show');
 });
 
-// Трекер пользователя
-let watchId = null;
-
-function enableWatching() {
-  if (!settings.geolocation || watchId !== null) return;
-  if (navigator.geolocation) {
-    watchId = navigator.geolocation.watchPosition(pos => {
-      setUserLocation(pos.coords.latitude, pos.coords.longitude);
-    });
-  }
-}
-
-function disableWatching() {
-  if (watchId !== null) {
-    navigator.geolocation.clearWatch(watchId);
-    watchId = null;
-  }
-}
-
 // Вкл/выкл геопозицию
 geoToggle.addEventListener('change', () => {
   settings.geolocation = geoToggle.checked;
   localStorage.setItem('aga_settings', JSON.stringify(settings));
-  if (settings.geolocation) enableWatching();
+  if(settings.geolocation) enableWatching();
   else disableWatching();
 });
 
