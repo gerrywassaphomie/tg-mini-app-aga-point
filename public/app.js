@@ -279,11 +279,20 @@ function updateReportList(data){
 db.ref('reports').on('value', snapshot=>{
   const data = snapshot.val()||{};
   for(const id in markersMap) if(!data[id]) { map.removeLayer(markersMap[id]); delete markersMap[id]; }
+  // Чёрная PNG-иконка для пользовательских точек
+  const blackIcon = L.icon({
+    iconUrl: 'marker-black.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    shadowSize: [41, 41]
+  });
   for(const id in data){
     const r = data[id];
     if(!markersMap[id]){
       const popupContent=`<b>${r.address}</b><br>${r.comment||'No comment'}<br><small style="color:#666">${formatTimeAgo(r.timestamp)}</small>`;
-      const marker = L.marker([r.lat,r.lng]).addTo(map).bindPopup(popupContent);
+      const marker = L.marker([r.lat,r.lng], {icon: blackIcon}).addTo(map).bindPopup(popupContent);
       markersMap[id] = marker;
     }
   }
