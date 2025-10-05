@@ -37,12 +37,21 @@ let userLat = null;
 let userLng = null;
 let userMarker = null;
 let watching = false;
+let isMapMovedByUser = false;
+
+map.on('movestart', () => { isMapMovedByUser = true; });
 
 function setUserLocation(lat,lng){
   userLat=lat; userLng=lng;
-  map.setView([lat,lng],15);
-  if(!userMarker) userMarker=L.marker([lat,lng],{icon:userIcon}).addTo(map).bindPopup('Your location');
-  else userMarker.setLatLng([lat,lng]);
+  if(!userMarker) {
+    userMarker=L.marker([lat,lng],{icon:userIcon}).addTo(map).bindPopup('Your location');
+    map.setView([lat,lng],15); // первый раз центрируем
+  } else {
+    userMarker.setLatLng([lat,lng]);
+    if(!isMapMovedByUser) {   // НЕ двигаем, если юзер сам трогал карту
+      map.setView([lat,lng]);
+    }
+  }
 }
 
 async function requestInitialLocation(){
@@ -66,6 +75,7 @@ function enableWatching(){
 document.addEventListener("DOMContentLoaded", requestInitialLocation);
 
 document.getElementById('locateBtn').addEventListener('click', async ()=>{
+  isMapMovedByUser = false;
   if(userLat && userLng){ map.setView([userLat,userLng],15); if(userMarker) userMarker.openPopup(); }
   else requestInitialLocation();
 });
@@ -101,9 +111,22 @@ function addReport(lat,lng,address,comment){
   const timestamp = Date.now();
   const newReportRef = db.ref('reports').push();
   newReportRef.set({lat,lng,address,comment,timestamp});
-  setTimeout(()=>{ newReportRef.remove(); }, 3*60*1000);
 }
 
+// ==== Очистка старых отчётов ====
+function cleanOldReports() {
+  const now = Date.now();
+  db.ref('reports').once('value').then(snapshot => {
+    const data = snapshot.val() || {};
+    for (const id in data) {
+      if (now - data[id].timestamp > 5 * 60 * 1000) { // старше 5 минут
+        db.ref('reports/' + id).remove();
+      }
+    }
+  });
+}
+
+// ==== Обновление списка ====
 function updateReportList(data){
   reportsUL.innerHTML='';
   const reportsArray = Object.values(data||{});
@@ -160,5 +183,9 @@ closeModalBtn.onclick = closeModal;
 modalOverlay.onclick = closeModal;
 
 // ==== Список репортов ====
-listBtn.addEventListener('click', ()=>{ reportList.style.display='flex'; reportList.style.flexDirection='column'; });
+listBtn.addEventListener('click', ()=>{ 
+  cleanOldReports(); // <-- очистка перед показом
+  reportList.style.display='flex'; 
+  reportList.style.flexDirection='column'; 
+});
 closeListBtn.addEventListener('click', ()=>{ reportList.style.display='none'; });
