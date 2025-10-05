@@ -80,11 +80,27 @@ function setUserLocation(lat,lng){
   userLat = lat;
   userLng = lng;
   if(!userMarker) {
-    userMarker = L.marker([lat,lng],{icon:userIcon}).addTo(map).bindPopup('Your location');
-    map.setView([lat,lng],15);
   } else {
     userMarker.setLatLng([lat,lng]);
     if(!isMapMovedByUser) map.setView([lat,lng]);
+  }
+  if (!settings.geolocation) {
+    // Если геолокация отключена — удаляем маркер
+    if (userMarker) {
+      map.removeLayer(userMarker);
+      userMarker = null;
+    }
+    return;
+  }
+
+  userLat = lat;
+  userLng = lng;
+
+  if (!userMarker) {
+    userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map).bindPopup('Your location');
+    map.setView([lat, lng], 15);
+  } else {
+    userMarker.setLatLng([lat, lng]);
   }
 }
 
@@ -140,6 +156,13 @@ function stopWatching(){
     watchId = null;
   }
 }
+  // удаляем маркер
+  if (userMarker) {
+    map.removeLayer(userMarker);
+    userMarker = null;
+  }
+  userLat = null;
+  userLng = null;
 
 geoToggle.addEventListener('change', () => {
   settings.geolocation = geoToggle.checked;
