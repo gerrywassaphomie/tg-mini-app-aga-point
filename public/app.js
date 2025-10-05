@@ -53,39 +53,98 @@ function setUserLocation(lat,lng){
   }
 }
 
-async function requestInitialLocation(){
-  try{
-    const loc = await Telegram.WebApp.getLocation({request_access:true});
-    if(loc && loc.latitude){ setUserLocation(loc.latitude,loc.longitude); enableWatching(); return; }
-  } catch{}
-  if(navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(pos => {
-      setUserLocation(pos.coords.latitude,pos.coords.longitude);
-      enableWatching();
-    }, ()=>console.warn("User denied geolocation"));
+// ==== Настройки ====
+const geoToggle = document.getElementById('geoToggle');
+const languageSelect = document.getElementById('languageSelect');
+
+// Загружаем настройки или дефолт
+let settings = JSON.parse(localStorage.getItem('aga_settings')) || { geolocation: false, language: 'en' };
+geoToggle.checked = settings.geolocation;
+languageSelect.value = settings.language;
+
+// ==== Запрос разрешения на геопозицию при старте ====
+async function checkInitialPermission() {
+  try {
+    const loc = await Telegram.WebApp.getLocation({ request_access: true });
+    if (loc && loc.latitude) {
+      settings.geolocation = true;
+      geoToggle.checked = true;
+      setUserLocation(loc.latitude, loc.longitude);
+      startWatching();
+    } else {
+      settings.geolocation = false;
+      geoToggle.checked = false;
+    }
+  } catch {
+    settings.geolocation = false;
+    geoToggle.checked = false;
+  }
+  localStorage.setItem('aga_settings', JSON.stringify(settings));
+}
+
+// ==== Функции слежения ====
+function startWatching() {
+  if (!settings.geolocation || watchId !== null) return;
+  if (navigator.geolocation) {
+    watchId = navigator.geolocation.watchPosition(pos => {
+      setUserLocation(pos.coords.latitude, pos.coords.longitude);
+    });
   }
 }
 
-function enableWatching(){
-  if(!settings.geolocation || watchId !== null) return;
-  if(navigator.geolocation){
-    watchId = navigator.geolocation.watchPosition(pos => { setUserLocation(pos.coords.latitude,pos.coords.longitude); });
-  }
-}
-
-function disableWatching(){
-  if(watchId !== null){
+function stopWatching() {
+  if (watchId !== null) {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
   }
 }
 
-document.addEventListener("DOMContentLoaded", requestInitialLocation);
+// ==== Переключение геопозиции в настройках ====
+geoToggle.addEventListener('change', async () => {
+  settings.geolocation = geoToggle.checked;
+  localStorage.setItem('aga_settings', JSON.stringify(settings));
 
+  if (geoToggle.checked) {
+    try {
+      const loc = await Telegram.WebApp.getLocation({ request_access: true });
+      if (loc && loc.latitude) {
+        setUserLocation(loc.latitude, loc.longitude);
+        startWatching();
+      } else {
+        alert("You denied geolocation access");
+        geoToggle.checked = false;
+        settings.geolocation = false;
+        localStorage.setItem('aga_settings', JSON.stringify(settings));
+      }
+    } catch {
+      alert("Cannot access location");
+      geoToggle.checked = false;
+      settings.geolocation = false;
+      localStorage.setItem('aga_settings', JSON.stringify(settings));
+    }
+  } else {
+    stopWatching();
+  }
+});
+
+// ==== Смена языка ====
+languageSelect.addEventListener('change', () => {
+  settings.language = languageSelect.value;
+  localStorage.setItem('aga_settings', JSON.stringify(settings));
+});
+
+// ==== Инициализация при загрузке ====
+document.addEventListener('DOMContentLoaded', checkInitialPermission);
+
+// ==== Кнопка центрирования на пользователя ====
 document.getElementById('locateBtn').addEventListener('click', async ()=>{
   isMapMovedByUser = false;
-  if(userLat && userLng){ map.setView([userLat,userLng],15); if(userMarker) userMarker.openPopup(); }
-  else requestInitialLocation();
+  if(userLat && userLng){
+    map.setView([userLat,userLng],15);
+    if(userMarker) userMarker.openPopup();
+  } else {
+    checkInitialPermission();
+  }
 });
 
 // ==== Репорты ====
@@ -126,7 +185,7 @@ function addReport(lat,lng,address,comment){
   newReportRef.set({lat,lng,address,comment,timestamp});
 }
 
-// ==== Очистка старых отчётов ====
+// Очистка старых репортов
 function cleanOldReports() {
   const now = Date.now();
   db.ref('reports').once('value').then(snapshot => {
@@ -137,7 +196,7 @@ function cleanOldReports() {
   });
 }
 
-// ==== Обновление списка ====
+// Обновление списка
 function updateReportList(data){
   reportsUL.innerHTML='';
   const reportsArray = Object.values(data||{});
@@ -152,7 +211,7 @@ function updateReportList(data){
   });
 }
 
-// ==== Слушатель Firebase ====
+// Firebase слушатель
 db.ref('reports').on('value', snapshot=>{
   const data = snapshot.val()||{};
   for(const id in markersMap) if(!data[id]){ map.removeLayer(markersMap[id]); delete markersMap[id]; }
@@ -167,7 +226,7 @@ db.ref('reports').on('value', snapshot=>{
   updateReportList(data);
 });
 
-// ==== Клик по карте ====
+// Клик по карте
 map.on('click', async e=>{
   const lat=e.latlng.lat, lng=e.latlng.lng;
   const address = await getAddress(lat,lng);
@@ -177,7 +236,7 @@ map.on('click', async e=>{
   addReportBtn.onclick=()=>{ addReport(lat,lng,address,reportComment.value||'No comment'); closeModal(); };
 });
 
-// ==== Кнопка Report ====
+// Кнопка Report
 document.getElementById('reportBtn').addEventListener('click', ()=>{
   if(userLat && userLng){
     getAddress(userLat,userLng).then(address=>{
@@ -189,95 +248,14 @@ document.getElementById('reportBtn').addEventListener('click', ()=>{
   } else alert("Turn on geolocation.");
 });
 
-// ==== Закрытие модалки ====
+// Закрытие модалки
 closeModalBtn.onclick = closeModal;
 modalOverlay.onclick = closeModal;
 
-// ==== Список репортов ====
+// Список репортов
 listBtn.addEventListener('click', ()=>{ 
-  cleanOldReports(); // очистка перед показом
+  cleanOldReports();
   reportList.style.display='flex'; 
   reportList.style.flexDirection='column'; 
 });
 closeListBtn.addEventListener('click', ()=>{ reportList.style.display='none'; });
-
-// ==== Настройки ====
-const geoToggle = document.getElementById('geoToggle');
-
-
-// Загружаем сохранённые настройки или создаём дефолт
-let settings = JSON.parse(localStorage.getItem('aga_settings')) || { geolocation: false, language: 'en' };
-
-// Проверка разрешения при запуске
-async function checkInitialPermission() {
-  try {
-    // Telegram WebApp getLocation требует request_access
-    const loc = await Telegram.WebApp.getLocation({ request_access: true });
-    if (loc && loc.latitude) {
-      // Пользователь уже разрешил
-      settings.geolocation = true;
-      geoToggle.checked = true;
-      setUserLocation(loc.latitude, loc.longitude);
-      startWatching();
-    } else {
-      // Пользователь не дал доступ
-      settings.geolocation = false;
-      geoToggle.checked = false;
-    }
-  } catch {
-    // Ошибка или отказ
-    settings.geolocation = false;
-    geoToggle.checked = false;
-  }
-  localStorage.setItem('aga_settings', JSON.stringify(settings));
-}
-
-// Запуск слежения
-function startWatching() {
-  if (!settings.geolocation || watchId !== null) return;
-  if (navigator.geolocation) {
-    watchId = navigator.geolocation.watchPosition(pos => {
-      setUserLocation(pos.coords.latitude, pos.coords.longitude);
-    });
-  }
-}
-
-// Остановка слежения
-function stopWatching() {
-  if (watchId !== null) {
-    navigator.geolocation.clearWatch(watchId);
-    watchId = null;
-  }
-}
-
-// Обработчик включения/выключения в настройках
-geoToggle.addEventListener('change', async () => {
-  settings.geolocation = geoToggle.checked;
-  localStorage.setItem('aga_settings', JSON.stringify(settings));
-  
-  if (geoToggle.checked) {
-    try {
-      // Запрос разрешения при включении
-      const loc = await Telegram.WebApp.getLocation({ request_access: true });
-      if (loc && loc.latitude) {
-        setUserLocation(loc.latitude, loc.longitude);
-        startWatching();
-      } else {
-        alert("You denied geolocation access");
-        geoToggle.checked = false;
-        settings.geolocation = false;
-        localStorage.setItem('aga_settings', JSON.stringify(settings));
-      }
-    } catch {
-      alert("Cannot access location");
-      geoToggle.checked = false;
-      settings.geolocation = false;
-      localStorage.setItem('aga_settings', JSON.stringify(settings));
-    }
-  } else {
-    stopWatching();
-  }
-});
-
-// При загрузке страницы
-document.addEventListener('DOMContentLoaded', checkInitialPermission);
