@@ -279,17 +279,17 @@ function updateReportList(data){
 db.ref('reports').on('value', snapshot=>{
   const data = snapshot.val()||{};
   for(const id in markersMap) if(!data[id]) { map.removeLayer(markersMap[id]); delete markersMap[id]; }
-  // SVG-маркер в стиле стандартного, но чёрный
-  const svgIcon = L.divIcon({
-    html: `<svg width="25" height="41" viewBox="0 0 25 41" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 22 12.5 41 12.5 41C12.5 41 25 22 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="#111" stroke="#fff" stroke-width="2"/>
-      <circle cx="12.5" cy="12.5" r="5.5" fill="#fff" stroke="#111" stroke-width="2"/>
-    </svg>`,
-    className: '',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34]
-  });
+  // SVG-маркер в стиле стандартного, но чёрный (без белой обводки)
+    const svgIcon = L.divIcon({
+      html: `<svg width="25" height="41" viewBox="0 0 25 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 22 12.5 41 12.5 41C12.5 41 25 22 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="#111"/>
+        <circle cx="12.5" cy="12.5" r="5.5" fill="#fff"/>
+      </svg>`,
+      className: '',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34]
+    });
   for(const id in data){
     const r = data[id];
     if(!markersMap[id]){
