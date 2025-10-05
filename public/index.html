@@ -7,50 +7,73 @@
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
   <link rel="stylesheet" href="style.css">
-
 
   <!-- Telegram SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-
-
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
- 
 </head>
 
 <body>
-  <div id="header">AGA POINT</div>
-  <div id="map"></div>
-
-  <div class="controls">
-    <button id="reportBtn">Report</button>
-    <button id="listBtn">List</button>
-    <button id="locateBtn">📍</button>
-  </div>
-
-  <div id="footer"></div>
-
-  <div id="reportList" class="report-list">
-    <div class="report-list-header">
-      <span>Reports</span>
-      <button id="closeListBtn" class="close-btn">&times;</button>
+  <!-- ===== Главный экран ===== -->
+  <div id="mainScreen">
+    <div id="header">
+      AGA POINT
+      <button id="settingsBtn" class="settings-btn">⚙️</button>
     </div>
-    <ul id="reportsUL"></ul>
+    <div id="map"></div>
+
+    <div class="controls">
+      <button id="reportBtn">Report</button>
+      <button id="listBtn">List</button>
+      <button id="locateBtn">📍</button>
+    </div>
+
+    <div id="footer"></div>
+
+    <div id="reportList" class="report-list">
+      <div class="report-list-header">
+        <span>Reports</span>
+        <button id="closeListBtn" class="close-btn">&times;</button>
+      </div>
+      <ul id="reportsUL"></ul>
+    </div>
+
+    <div id="modalOverlay"></div>
+    <div id="reportModal">
+      <h3>Add Report</h3>
+      <p id="reportLocation">Location: </p>
+      <textarea id="reportComment" placeholder="Enter comment..." rows="4"></textarea>
+      <br><br>
+      <button id="addReportBtn">Add</button>
+      <button id="closeModalBtn">Close</button>
+    </div>
   </div>
 
-  <div id="modalOverlay"></div>
-  <div id="reportModal">
-    <h3>Add Report</h3>
-    <p id="reportLocation">Location: </p>
-    <textarea id="reportComment" placeholder="Enter comment..." rows="4"></textarea>
-    <br><br>
-    <button id="addReportBtn">Add</button>
-    <button id="closeModalBtn">Close</button>
+  <!-- ===== Экран настроек ===== -->
+  <div id="settingsScreen" class="hidden">
+    <div id="header">
+      <button id="backBtn" class="back-btn">←</button>
+      Settings
+    </div>
+
+    <div class="settings-content">
+      <label class="setting-item">
+        <span>Enable Geolocation</span>
+        <input type="checkbox" id="geoToggle">
+      </label>
+
+      <label class="setting-item">
+        <span>Language</span>
+        <select id="languageSelect">
+          <option value="en">English</option>
+          <option value="es">Español</option>
+        </select>
+      </label>
+    </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

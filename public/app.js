@@ -189,3 +189,46 @@ listBtn.addEventListener('click', ()=>{
   reportList.style.flexDirection='column'; 
 });
 closeListBtn.addEventListener('click', ()=>{ reportList.style.display='none'; });
+
+
+// ==== НАСТРОЙКИ ====
+const settingsBtn = document.getElementById('settingsBtn');
+const backBtn = document.getElementById('backBtn');
+const mainScreen = document.getElementById('mainScreen');
+const settingsScreen = document.getElementById('settingsScreen');
+
+const geoToggle = document.getElementById('geoToggle');
+const languageSelect = document.getElementById('languageSelect');
+
+// Загружаем сохранённые настройки
+let settings = JSON.parse(localStorage.getItem('aga_settings')) || {
+  geolocation: true,
+  language: 'en'
+};
+
+geoToggle.checked = settings.geolocation;
+languageSelect.value = settings.language;
+
+// Переход на экран настроек
+settingsBtn.addEventListener('click', () => {
+  mainScreen.classList.add('hidden');
+  settingsScreen.classList.remove('hidden');
+});
+
+// Назад
+backBtn.addEventListener('click', () => {
+  mainScreen.classList.remove('hidden');
+  settingsScreen.classList.add('hidden');
+});
+
+// Сохранение настроек
+geoToggle.addEventListener('change', () => {
+  settings.geolocation = geoToggle.checked;
+  localStorage.setItem('aga_settings', JSON.stringify(settings));
+  alert(settings.geolocation ? "Geolocation ON" : "Geolocation OFF");
+});
+
+languageSelect.addEventListener('change', () => {
+  settings.language = languageSelect.value;
+  localStorage.setItem('aga_settings', JSON.stringify(settings));
+});
