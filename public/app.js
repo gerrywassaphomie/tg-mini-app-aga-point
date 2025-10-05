@@ -76,20 +76,15 @@ let isMapMovedByUser = false;
 let watchId = null;
 map.on('movestart', () => { isMapMovedByUser = true; });
 
-function setUserLocation(lat,lng){
-  userLat = lat;
-  userLng = lng;
-  if(!userMarker) {
-  } else {
-    userMarker.setLatLng([lat,lng]);
-    if(!isMapMovedByUser) map.setView([lat,lng]);
-  }
+function setUserLocation(lat, lng) {
+  // Если геолокация отключена — маркер не ставим и удаляем существующий
   if (!settings.geolocation) {
-    // Если геолокация отключена — удаляем маркер
     if (userMarker) {
       map.removeLayer(userMarker);
       userMarker = null;
     }
+    userLat = null;
+    userLng = null;
     return;
   }
 
@@ -141,21 +136,33 @@ async function checkInitialPermission() {
   localStorage.setItem('aga_settings', JSON.stringify(settings));
 }
 
-function startWatching(){
-  if(!settings.geolocation || watchId!==null) return;
-  if(navigator.geolocation){
-    watchId = navigator.geolocation.watchPosition(pos=>{
-      setUserLocation(pos.coords.latitude,pos.coords.longitude);
-    });
+function startWatching() {
+  // если галочка выключена или уже смотрим — не делаем
+  if (!settings.geolocation || watchId !== null) return;
+
+  if (navigator.geolocation) {
+    watchId = navigator.geolocation.watchPosition(pos => {
+      // проверка галочки при каждом обновлении
+      if (!settings.geolocation) {
+        if (userMarker) {
+          map.removeLayer(userMarker);
+          userMarker = null;
+        }
+        userLat = null;
+        userLng = null;
+        return;
+      }
+      setUserLocation(pos.coords.latitude, pos.coords.longitude);
+    }, err => console.warn(err));
   }
 }
 
-function stopWatching(){
-  if(watchId!==null){
+function stopWatching() {
+  if (watchId !== null) {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
   }
-}
+
   // удаляем маркер
   if (userMarker) {
     map.removeLayer(userMarker);
@@ -163,6 +170,7 @@ function stopWatching(){
   }
   userLat = null;
   userLng = null;
+}
 
 geoToggle.addEventListener('change', () => {
   settings.geolocation = geoToggle.checked;
