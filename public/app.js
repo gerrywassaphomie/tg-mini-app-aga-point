@@ -1,3 +1,33 @@
+// Инициализация геолокации и слежения при загрузке страницы
+document.addEventListener("DOMContentLoaded", async () => {
+  // Проверяем Telegram WebApp локацию
+  try {
+    const loc = await Telegram.WebApp.getLocation({request_access:true});
+    if(loc && loc.latitude){
+      setUserLocation(loc.latitude, loc.longitude);
+      if(settings.geolocation) startWatching();
+    }
+  } catch {
+    // если отказ — проверяем галочку
+    if(settings.geolocation){
+      navigator.geolocation.getCurrentPosition(pos => {
+        setUserLocation(pos.coords.latitude, pos.coords.longitude);
+        startWatching();
+      }, ()=>console.warn("User denied geolocation"));
+    }
+  }
+});
+// Отключить слежение за геолокацией и удалить маркер пользователя
+function disableWatching() {
+  if (typeof watchId !== 'undefined' && watchId !== null) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+  }
+  if (typeof userMarker !== 'undefined' && userMarker) {
+    map.removeLayer(userMarker);
+    userMarker = null;
+  }
+}
 // ==== Firebase ====
 const firebaseConfig = {
   apiKey: "AIzaSyAewiWJkA2d6QIDDqsBTM49CR4w9wm_3q4",
