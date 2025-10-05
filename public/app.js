@@ -104,28 +104,37 @@ function stopWatching(){
   }
 }
 
-geoToggle.addEventListener('change', async ()=>{
+geoToggle.addEventListener('change', () => {
   settings.geolocation = geoToggle.checked;
   localStorage.setItem('aga_settings', JSON.stringify(settings));
-  if(geoToggle.checked){
-    try{
-      const loc = await Telegram.WebApp.getLocation({request_access:true});
-      if(loc && loc.latitude){
-        setUserLocation(loc.latitude, loc.longitude);
+
+  if (geoToggle.checked) {
+    // Если уже был доступ через Telegram при старте, просто включаем слежение
+    if(userLat && userLng){
+      startWatching();
+      return;
+    }
+
+    // Иначе запрашиваем стандартно через браузер
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(pos => {
+        setUserLocation(pos.coords.latitude, pos.coords.longitude);
         startWatching();
-      } else {
+      }, () => {
         alert("You denied geolocation access");
         geoToggle.checked = false;
         settings.geolocation = false;
         localStorage.setItem('aga_settings', JSON.stringify(settings));
-      }
-    } catch {
-      alert("Cannot access location");
+      });
+    } else {
+      alert("Geolocation is not supported by your browser");
       geoToggle.checked = false;
       settings.geolocation = false;
       localStorage.setItem('aga_settings', JSON.stringify(settings));
     }
-  } else stopWatching();
+  } else {
+    stopWatching();
+  }
 });
 
 // ==== Инициализация при загрузке страницы ====
