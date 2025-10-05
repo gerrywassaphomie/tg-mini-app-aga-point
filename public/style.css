@@ -90,6 +90,7 @@ body, html {
 
 
 /* ===== СТИЛЬНОЕ ЧЕРНО-БЕЛОЕ МОДАЛЬНОЕ ОКНО ДОБАВЛЕНИЯ ===== */
+/* ===== СТИЛЬНОЕ ЧЕРНО-БЕЛОЕ МОДАЛЬНОЕ ОКНО ДОБАВЛЕНИЯ ===== */
 #reportModal {
   display: none;
   position: fixed;
@@ -134,9 +135,9 @@ body, html {
 }
 
 #reportComment {
-  width: 100%;
+  width: 96%;
   min-width: 0;
-  max-width: 100%;
+  max-width: 96%;
   border-radius: 12px;
   border: 1.5px solid #333;
   background: #181818;
@@ -149,6 +150,10 @@ body, html {
   outline: none;
   resize: vertical;
   transition: border 0.2s, background 0.2s;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
 }
 #reportComment:focus {
   border: 1.5px solid #fff;
@@ -158,6 +163,20 @@ body, html {
   color: #888;
   opacity: 1;
   font-size: 1em;
+}
+@media (max-width: 600px) {
+  #reportModal {
+    width: 98vw;
+    min-width: unset;
+    padding: 10vw 2vw 6vw 2vw;
+    max-width: 99vw;
+  }
+  #reportComment {
+    width: 98%;
+    max-width: 98%;
+    font-size: 1em;
+    padding: 10px 8px;
+  }
 }
 
 #reportModal button {
