@@ -36,10 +36,15 @@ body, html {
   bottom: 0;
   left: 0;
   z-index: 1000;
+  height: 56px;
+  line-height: 1.1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #map {
-  height: calc(100vh - 130px);
+  height: calc(100vh - 56px - 56px); /* header + footer */
   width: 100%;
 }
 
@@ -504,10 +509,23 @@ body, html {
   #header {
     font-size: 1.6em;
     padding: 10px 0;
+    height: 46px;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   #footer {
     font-size: 1em;
     padding: 8px 0;
+    height: 46px;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #map {
+    height: calc(100vh - 46px - 46px);
   }
   .controls button {
     font-size: 14px;
