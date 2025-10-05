@@ -88,19 +88,25 @@ body, html {
   opacity: 1;
 }
 
+
+/* ===== СТИЛЬНОЕ ЧЕРНО-БЕЛОЕ МОДАЛЬНОЕ ОКНО ДОБАВЛЕНИЯ ===== */
 #reportModal {
   display: none;
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) scale(0.9);
-  background: #fff;
-  padding: 20px;
-  box-shadow: 0 0 25px rgba(0,0,0,0.4);
-  border-radius: 16px;
+  transform: translate(-50%, -50%) scale(0.96);
+  background: linear-gradient(135deg, #181818 0%, #232323 100%);
+  padding: 32px 22px 24px 22px;
+  box-shadow: 0 0 32px 0 #000a, 0 2px 16px #0004;
+  border-radius: 20px;
   z-index: 1300;
   min-width: 320px;
-  transition: all 0.3s ease;
+  max-width: 96vw;
+  width: 370px;
+  color: #fff;
+  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+  border: 1.5px solid #222;
 }
 
 #reportModal.show {
@@ -108,41 +114,83 @@ body, html {
   transform: translate(-50%, -50%) scale(1);
 }
 
-#reportModal button {
-  padding: 12px 18px;
-  margin: 5px 5px 0 0;
-  border: none;
-  border-radius: 10px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s ease;
+#reportModal h3 {
+  margin-top: 0;
+  margin-bottom: 18px;
+  font-size: 1.35em;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #fff;
+  text-align: center;
+  text-shadow: 0 2px 8px #0006;
 }
 
-#addReportBtn {
-  background: linear-gradient(to right, #28a745, #4cd964);
-  color: white;
-}
-
-#addReportBtn:hover {
-  opacity: 0.85;
-}
-
-#closeModalBtn {
-  background: #6c757d;
-  color: white;
-}
-
-#closeModalBtn:hover {
-  opacity: 0.85;
+#reportModal p#reportLocation {
+  color: #bbb;
+  font-size: 0.98em;
+  margin-bottom: 10px;
+  margin-top: 0;
+  text-align: center;
 }
 
 #reportComment {
   width: 100%;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  padding: 8px;
-  font-size: 1em;
+  min-width: 0;
+  max-width: 100%;
+  border-radius: 12px;
+  border: 1.5px solid #333;
+  background: #181818;
+  color: #fff;
+  padding: 13px 14px;
+  font-size: 1.08em;
   margin-top: 10px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 8px #0002 inset;
+  outline: none;
+  resize: vertical;
+  transition: border 0.2s, background 0.2s;
+}
+#reportComment:focus {
+  border: 1.5px solid #fff;
+  background: #232323;
+}
+#reportComment::placeholder {
+  color: #888;
+  opacity: 1;
+  font-size: 1em;
+}
+
+#reportModal button {
+  padding: 13px 22px;
+  margin: 7px 7px 0 0;
+  border: none;
+  border-radius: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1em;
+  transition: 0.2s;
+  box-shadow: 0 1px 8px #0002;
+}
+
+#addReportBtn {
+  background: linear-gradient(90deg, #fff 0%, #222 100%);
+  color: #111;
+  border: 1.5px solid #fff;
+}
+#addReportBtn:hover {
+  background: linear-gradient(90deg, #222 0%, #fff 100%);
+  color: #000;
+}
+
+#closeModalBtn {
+  background: #232323;
+  color: #fff;
+  border: 1.5px solid #444;
+}
+#closeModalBtn:hover {
+  background: #111;
+  color: #fff;
+  border: 1.5px solid #fff;
 }
 
 .report-list {
