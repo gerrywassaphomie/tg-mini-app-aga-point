@@ -275,18 +275,18 @@ body, html {
 
 #reportsUL li {
   background: linear-gradient(90deg, #232323 0%, #181818 100%);
-  margin-bottom: 6px;
-  padding: 7px 10px 6px 10px;
-  border-radius: 10px;
-  font-size: 0.97em;
-  line-height: 1.22;
-  box-shadow: 0 1px 5px #0002, 0 1px 3px #0001;
+  margin-bottom: 4px;
+  padding: 4px 7px 4px 7px;
+  border-radius: 8px;
+  font-size: 0.93em;
+  line-height: 1.15;
+  box-shadow: 0 1px 4px #0002, 0 1px 2px #0001;
   cursor: pointer;
   transition: transform 0.16s, box-shadow 0.16s, background 0.18s;
-  border: 1.2px solid #222;
+  border: 1px solid #222;
   color: #fff;
   position: relative;
-  min-height: 38px;
+  min-height: 28px;
 }
 #reportsUL li:hover {
   transform: translateY(-1px) scale(1.01);
@@ -295,15 +295,15 @@ body, html {
 }
 #reportsUL li b {
   display: block;
-  font-size: 1em;
-  margin-bottom: 2px;
+  font-size: 0.98em;
+  margin-bottom: 1px;
   color: #fff;
   font-weight: 600;
-  letter-spacing: 0.1px;
+  letter-spacing: 0.05px;
 }
 #reportsUL li small {
   color: #bbb;
-  font-size: 0.88em;
+  font-size: 0.82em;
 }
 
 #reportsUL::-webkit-scrollbar {
