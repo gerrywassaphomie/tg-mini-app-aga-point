@@ -191,7 +191,7 @@ listBtn.addEventListener('click', ()=>{
 closeListBtn.addEventListener('click', ()=>{ reportList.style.display='none'; });
 
 
-// ==== НАСТРОЙКИ ====
+// ===== Настройки =====
 const settingsBtn = document.getElementById('settingsBtn');
 const backBtn = document.getElementById('backBtn');
 const mainScreen = document.getElementById('mainScreen');
@@ -212,22 +212,43 @@ languageSelect.value = settings.language;
 // Переход на экран настроек
 settingsBtn.addEventListener('click', () => {
   mainScreen.classList.add('hidden');
-  settingsScreen.classList.remove('hidden');
+  settingsScreen.classList.add('show');
 });
 
-// Назад
+// Назад на главный экран
 backBtn.addEventListener('click', () => {
   mainScreen.classList.remove('hidden');
-  settingsScreen.classList.add('hidden');
+  settingsScreen.classList.remove('show');
 });
 
-// Сохранение настроек
+// Трекер пользователя
+let watchId = null;
+
+function enableWatching() {
+  if (!settings.geolocation || watchId !== null) return;
+  if (navigator.geolocation) {
+    watchId = navigator.geolocation.watchPosition(pos => {
+      setUserLocation(pos.coords.latitude, pos.coords.longitude);
+    });
+  }
+}
+
+function disableWatching() {
+  if (watchId !== null) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+  }
+}
+
+// Вкл/выкл геопозицию
 geoToggle.addEventListener('change', () => {
   settings.geolocation = geoToggle.checked;
   localStorage.setItem('aga_settings', JSON.stringify(settings));
-  alert(settings.geolocation ? "Geolocation ON" : "Geolocation OFF");
+  if (settings.geolocation) enableWatching();
+  else disableWatching();
 });
 
+// Смена языка
 languageSelect.addEventListener('change', () => {
   settings.language = languageSelect.value;
   localStorage.setItem('aga_settings', JSON.stringify(settings));

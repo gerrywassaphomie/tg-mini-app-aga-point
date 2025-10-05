@@ -1,292 +1,278 @@
-
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f4f6f8;
-    }
-
-    #header {
-      width: 100%;
-      text-align: center;
-      font-size: 2em;
-      font-weight: bold;
-      color: white;
-      background: linear-gradient(135deg, #000000, #000000);
-      padding: 12px 0;
-      border-top: 4px solid #444;
-      border-bottom: 4px solid #444;
-      box-shadow: 0 3px 8px #0000004d;
-      z-index: 1000;
-      position: relative;
-    }
-
-    #footer {
-      width: 100%;
-      text-align: center;
-      font-size: 2em;
-      font-weight: bold;
-      color: white;
-      background: linear-gradient(135deg, #000000, #000000);
-      padding: 12px 0;
-      border-top: 4px solid #444;
-      border-bottom: 4px solid #444;
-      box-shadow: 0 -3px 8px rgba(0,0,0,0.3);
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      z-index: 1000;
-    }
-
-    #map {
-      height: calc(100vh - 130px);
-      width: 100%;
-    }
-
-    .controls {
-      position: fixed;
-      bottom: 80px;
-      right: 15px;
-      z-index: 1100;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .controls button {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 10px;
-      font-weight: bold;
-      background: linear-gradient(to right, #000000, #000000);
-      color: white;
-      cursor: pointer;
-      transition: 0.2s;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.25);
-      font-size: 15px;
-    }
-
-    .controls button:hover {
-      opacity: 0.85;
-    }
-
-    #modalOverlay {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 1200;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    #modalOverlay.show {
-      display: block;
-      opacity: 1;
-    }
-
-    #reportModal {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.9);
-      background: #fff;
-      padding: 20px;
-      box-shadow: 0 0 25px rgba(0,0,0,0.4);
-      border-radius: 16px;
-      z-index: 1300;
-      min-width: 320px;
-      transition: all 0.3s ease;
-    }
-
-    #reportModal.show {
-      display: block;
-      transform: translate(-50%, -50%) scale(1);
-    }
-
-    #reportModal button {
-      padding: 12px 18px;
-      margin: 5px 5px 0 0;
-      border: none;
-      border-radius: 10px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
-
-    #addReportBtn {
-      background: linear-gradient(to right, #28a745, #4cd964);
-      color: white;
-    }
-
-    #addReportBtn:hover {
-      opacity: 0.85;
-    }
-
-    #closeModalBtn {
-      background: #6c757d;
-      color: white;
-    }
-
-    #closeModalBtn:hover {
-      opacity: 0.85;
-    }
-
-    #reportComment {
-      width: 100%;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      padding: 8px;
-      font-size: 1em;
-      margin-top: 10px;
-    }
-
-    .report-list {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 45%;
-      background: #fff;
-      border-top: 3px solid #444;
-      box-shadow: 0 -2px 8px rgba(0,0,0,0.25);
-      display: none;
-      flex-direction: column;
-      z-index: 1250;
-      border-radius: 14px 14px 0 0;
-      overflow: hidden;
-    }
-
-    .report-list-header {
-      flex: 0 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 14px;
-      background: linear-gradient(135deg, #f2f2f2, #e8e8e8);
-      border-bottom: 1px solid #ddd;
-      font-weight: bold;
-      font-size: 15px;
-      color: #333;
-    }
-
-    .close-btn {
-      background: none;
-      border: none;
-      font-size: 22px;
-      line-height: 20px;
-      cursor: pointer;
-      color: #333;
-      padding: 0;
-    }
-
-    #reportsUL {
-      flex: 1;
-      margin: 0;
-      padding: 8px 12px;
-      list-style: none;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    #reportsUL li {
-      background: #928585;
-      margin-bottom: 6px;
-      padding: 6px 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      line-height: 1.3;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-
-    #reportsUL li:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-    }
-
-    #reportsUL li b {
-      display: block;
-      font-size: 13px;
-      margin-bottom: 2px;
-      color: #ffffff;
-    }
-
-    #reportsUL li small {
-      color: #666;
-      font-size: 11px;
-    }
-
-    #reportsUL::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    #reportsUL::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 6px;
-    }
-
-    #reportsUL::-webkit-scrollbar-thumb {
-      background: #bbb;
-      border-radius: 6px;
-    }
-
-    #reportsUL::-webkit-scrollbar-thumb:hover {
-      background: #999;
-    }
-
-    @media (max-width: 600px) {
-      #header {
-        font-size: 1.6em;
-        padding: 10px 0;
-      }
-      #footer {
-        font-size: 1em;
-        padding: 8px 0;
-      }
-      .controls button {
-        font-size: 14px;
-        padding: 10px 16px;
-      }
-      #reportModal {
-        width: 90%;
-        min-width: unset;
-        padding: 16px;
-      }
-      #reportModal textarea {
-        font-size: 14px;
-        padding: 8px;
-      }
-      #addReportBtn, #closeModalBtn {
-        font-size: 14px;
-        padding: 12px 16px;
-      }
-    }
-
-    .hidden { display: none !important; }
-
-.settings-btn, .back-btn {
-  background: transparent;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f4f6f8;
 }
 
 #header {
+  width: 100%;
+  text-align: center;
+  font-size: 2em;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(135deg, #000000, #000000);
+  padding: 12px 0;
+  border-top: 4px solid #444;
+  border-bottom: 4px solid #444;
+  box-shadow: 0 3px 8px #0000004d;
+  z-index: 1000;
+  position: relative; /* для абсолютного позиционирования шестерёнки */
+}
+
+#footer {
+  width: 100%;
+  text-align: center;
+  font-size: 2em;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(135deg, #000000, #000000);
+  padding: 12px 0;
+  border-top: 4px solid #444;
+  border-bottom: 4px solid #444;
+  box-shadow: 0 -3px 8px rgba(0,0,0,0.3);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+#map {
+  height: calc(100vh - 130px);
+  width: 100%;
+}
+
+.controls {
+  position: fixed;
+  bottom: 80px;
+  right: 15px;
+  z-index: 1100;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.controls button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  background: linear-gradient(to right, #000000, #000000);
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+  font-size: 15px;
+}
+
+.controls button:hover {
+  opacity: 0.85;
+}
+
+#modalOverlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1200;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+#modalOverlay.show {
+  display: block;
+  opacity: 1;
+}
+
+#reportModal {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  background: #fff;
+  padding: 20px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.4);
+  border-radius: 16px;
+  z-index: 1300;
+  min-width: 320px;
+  transition: all 0.3s ease;
+}
+
+#reportModal.show {
+  display: block;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+#reportModal button {
+  padding: 12px 18px;
+  margin: 5px 5px 0 0;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+#addReportBtn {
+  background: linear-gradient(to right, #28a745, #4cd964);
+  color: white;
+}
+
+#addReportBtn:hover {
+  opacity: 0.85;
+}
+
+#closeModalBtn {
+  background: #6c757d;
+  color: white;
+}
+
+#closeModalBtn:hover {
+  opacity: 0.85;
+}
+
+#reportComment {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  padding: 8px;
+  font-size: 1em;
+  margin-top: 10px;
+}
+
+.report-list {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 45%;
+  background: #fff;
+  border-top: 3px solid #444;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.25);
+  display: none;
+  flex-direction: column;
+  z-index: 1250;
+  border-radius: 14px 14px 0 0;
+  overflow: hidden;
+}
+
+.report-list-header {
+  flex: 0 0 auto;
+  display: flex;
   justify-content: space-between;
-  padding: 10px;
+  align-items: center;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #f2f2f2, #e8e8e8);
+  border-bottom: 1px solid #ddd;
+  font-weight: bold;
+  font-size: 15px;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  line-height: 20px;
+  cursor: pointer;
+  color: #333;
+  padding: 0;
+}
+
+#reportsUL {
+  flex: 1;
+  margin: 0;
+  padding: 8px 12px;
+  list-style: none;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#reportsUL li {
+  background: #928585;
+  margin-bottom: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.3;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+#reportsUL li:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+#reportsUL li b {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 2px;
+  color: #ffffff;
+}
+
+#reportsUL li small {
+  color: #666;
+  font-size: 11px;
+}
+
+#reportsUL::-webkit-scrollbar {
+  width: 6px;
+}
+
+#reportsUL::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 6px;
+}
+
+#reportsUL::-webkit-scrollbar-thumb {
+  background: #bbb;
+  border-radius: 6px;
+}
+
+#reportsUL::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* ===== Настройки ===== */
+.settings-btn {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: white;
+  z-index: 1100;
+}
+
+#settingsScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  z-index: 1200;
+  display: none;
+  flex-direction: column;
+}
+
+#settingsScreen.show {
+  display: flex;
 }
 
 .settings-content {
   padding: 20px;
+  margin-top: 20px;
 }
 
 .setting-item {
@@ -297,14 +283,38 @@
   font-size: 16px;
 }
 
-/* Настройки на весь экран */
-#settingsScreen {
-  position: fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:#fff;
-  z-index: 1000;
+.back-btn {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  margin-right: 10px;
 }
 
+@media (max-width: 600px) {
+  #header {
+    font-size: 1.6em;
+    padding: 10px 0;
+  }
+  #footer {
+    font-size: 1em;
+    padding: 8px 0;
+  }
+  .controls button {
+    font-size: 14px;
+    padding: 10px 16px;
+  }
+  #reportModal {
+    width: 90%;
+    min-width: unset;
+    padding: 16px;
+  }
+  #reportModal textarea {
+    font-size: 14px;
+    padding: 8px;
+  }
+  #addReportBtn, #closeModalBtn {
+    font-size: 14px;
+    padding: 12px 16px;
+  }
+}
