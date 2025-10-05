@@ -19,14 +19,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 // Отключить слежение за геолокацией и удалить маркер пользователя
 function disableWatching() {
+  // Останавливаем слежение
   if (typeof watchId !== 'undefined' && watchId !== null) {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
   }
+
+  // Удаляем маркер пользователя с карты
   if (typeof userMarker !== 'undefined' && userMarker) {
     map.removeLayer(userMarker);
     userMarker = null;
   }
+
+  // Обнуляем координаты
+  if (typeof userLat !== 'undefined') userLat = null;
+  if (typeof userLng !== 'undefined') userLng = null;
 }
 // ==== Firebase ====
 const firebaseConfig = {
