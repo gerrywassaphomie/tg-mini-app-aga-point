@@ -1,6 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
 
-export default async function handler(req, res) {
+export async function GET() {
   const url = "https://www.stopice.net/login/?recentmapdata=1&duration=since_yesterday";
 
   try {
@@ -31,10 +31,11 @@ export default async function handler(req, res) {
       url: p.url || "",
     }));
 
-    res.setHeader("Cache-Control", "s-maxage=300");
-    res.status(200).json(points);
+    return Response.json(points, {
+      headers: { "Cache-Control": "s-maxage=300" },
+    });
   } catch (err) {
     console.error("Ошибка получения данных:", err);
-    res.status(500).json({ error: "Ошибка загрузки данных" });
+    return Response.json({ error: "Ошибка загрузки данных" }, { status: 500 });
   }
 }
