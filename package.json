@@ -2,11 +2,6 @@
   "name": "aga-point",
   "version": "1.0.0",
   "type": "module",
-  "main": "index.js",
-  "scripts": {
-    "dev": "node index.js",
-    "start": "node index.js"
-  },
   "dependencies": {
     "express": "^5.1.0",
     "fast-xml-parser": "^4.4.1"
