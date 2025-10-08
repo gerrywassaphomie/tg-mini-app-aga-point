@@ -1,17 +1,16 @@
-const express = require('express');
-const path = require('path');
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3000;
+const port = process.env.PORT || 3000;
 
-// Отдаём статику из папки public
-app.use(express.static(path.join(__dirname, 'public')));
+// Раздаём файлы из public/
+app.use(express.static(path.join(__dirname, "public")));
 
-// Catch-all: любой путь будет отдавать index.html
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
 });
