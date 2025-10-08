@@ -1,6 +1,6 @@
-// Инициализация геолокации и слежения при загрузке страницы
+// ==== ТВОЙ ОРИГИНАЛЬНЫЙ КОД ====
+
 document.addEventListener("DOMContentLoaded", async () => {
-  // Проверяем Telegram WebApp локацию
   try {
     const loc = await Telegram.WebApp.getLocation({request_access:true});
     if(loc && loc.latitude){
@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       if(settings.geolocation) startWatching();
     }
   } catch {
-    // если отказ — проверяем галочку
     if(settings.geolocation){
       navigator.geolocation.getCurrentPosition(pos => {
         setUserLocation(pos.coords.latitude, pos.coords.longitude);
@@ -17,24 +16,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 });
-// Отключить слежение за геолокацией и удалить маркер пользователя
+
 function disableWatching() {
-  // Останавливаем слежение
   if (typeof watchId !== 'undefined' && watchId !== null) {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
   }
-
-  // Удаляем маркер пользователя с карты
   if (typeof userMarker !== 'undefined' && userMarker) {
     map.removeLayer(userMarker);
     userMarker = null;
   }
-
-  // Обнуляем координаты
   if (typeof userLat !== 'undefined') userLat = null;
   if (typeof userLng !== 'undefined') userLng = null;
 }
+
 // ==== Firebase ====
 const firebaseConfig = {
   apiKey: "AIzaSyAewiWJkA2d6QIDDqsBTM49CR4w9wm_3q4",
@@ -46,7 +41,7 @@ const firebaseConfig = {
   appId: "1:168086303945:web:e9c95442a8d60c3b1dc918"
 };
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const db = firebase.database(); // ✅ исправлено
 
 // ==== Telegram WebApp ====
 Telegram.WebApp.ready();
@@ -66,7 +61,11 @@ const userIcon = L.divIcon({
 });
 const style = document.createElement('style');
 style.innerHTML = `
-@keyframes pulse { 0% { transform: scale(1); opacity:1; } 50% { transform: scale(1.3); opacity:0.6; } 100% { transform: scale(1); opacity:1; } }`;
+@keyframes pulse {
+  0% { transform: scale(1); opacity:1; }
+  50% { transform: scale(1.3); opacity:0.6; }
+  100% { transform: scale(1); opacity:1; }
+}`;
 document.head.appendChild(style);
 
 let userLat = null;
@@ -77,7 +76,6 @@ let watchId = null;
 map.on('movestart', () => { isMapMovedByUser = true; });
 
 function setUserLocation(lat, lng) {
-  // Если геолокация отключена — маркер не ставим и удаляем существующий
   if (!settings.geolocation) {
     if (userMarker) {
       map.removeLayer(userMarker);
@@ -87,10 +85,8 @@ function setUserLocation(lat, lng) {
     userLng = null;
     return;
   }
-
   userLat = lat;
   userLng = lng;
-
   if (!userMarker) {
     userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map).bindPopup('Your location');
     map.setView([lat, lng], 15);
@@ -107,12 +103,10 @@ const settingsScreen = document.getElementById('settingsScreen');
 const geoToggle = document.getElementById('geoToggle');
 const languageSelect = document.getElementById('languageSelect');
 
-// Загружаем настройки или создаем дефолт
 let settings = JSON.parse(localStorage.getItem('aga_settings')) || { geolocation: false, language: 'en' };
 geoToggle.checked = settings.geolocation;
 languageSelect.value = settings.language;
 
-// Переход на экран настроек
 settingsBtn.addEventListener('click', () => {
   mainScreen.classList.add('hidden');
   settingsScreen.classList.add('show');
@@ -132,17 +126,14 @@ async function checkInitialPermission() {
       setUserLocation(loc.latitude, loc.longitude);
       startWatching();
     }
-  } catch { /* пользователь не дал */ }
+  } catch {}
   localStorage.setItem('aga_settings', JSON.stringify(settings));
 }
 
 function startWatching() {
-  // если галочка выключена или уже смотрим — не делаем
   if (!settings.geolocation || watchId !== null) return;
-
   if (navigator.geolocation) {
     watchId = navigator.geolocation.watchPosition(pos => {
-      // проверка галочки при каждом обновлении
       if (!settings.geolocation) {
         if (userMarker) {
           map.removeLayer(userMarker);
@@ -162,8 +153,6 @@ function stopWatching() {
     navigator.geolocation.clearWatch(watchId);
     watchId = null;
   }
-
-  // удаляем маркер
   if (userMarker) {
     map.removeLayer(userMarker);
     userMarker = null;
@@ -175,15 +164,11 @@ function stopWatching() {
 geoToggle.addEventListener('change', () => {
   settings.geolocation = geoToggle.checked;
   localStorage.setItem('aga_settings', JSON.stringify(settings));
-
   if (geoToggle.checked) {
-    // Если уже был доступ через Telegram при старте, просто включаем слежение
     if(userLat && userLng){
       startWatching();
       return;
     }
-
-    // Иначе запрашиваем стандартно через браузер
     if(navigator.geolocation){
       navigator.geolocation.getCurrentPosition(pos => {
         setUserLocation(pos.coords.latitude, pos.coords.longitude);
@@ -205,10 +190,8 @@ geoToggle.addEventListener('change', () => {
   }
 });
 
-// ==== Инициализация при загрузке страницы ====
 document.addEventListener('DOMContentLoaded', checkInitialPermission);
 
-// ==== Кнопка локатора ====
 document.getElementById('locateBtn').addEventListener('click', ()=>{
   isMapMovedByUser = false;
   if(userLat && userLng){
@@ -279,21 +262,22 @@ function updateReportList(data){
 db.ref('reports').on('value', snapshot=>{
   const data = snapshot.val()||{};
   for(const id in markersMap) if(!data[id]) { map.removeLayer(markersMap[id]); delete markersMap[id]; }
-  // SVG-маркер в стиле стандартного, но чёрный (без белой обводки)
-    const svgIcon = L.divIcon({
-      html: `<svg width="25" height="41" viewBox="0 0 25 41" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 22 12.5 41 12.5 41C12.5 41 25 22 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="#111" stroke="#fff" stroke-width="0.7"/>
-        <circle cx="12.5" cy="12.5" r="5.5" fill="#fff"/>
-      </svg>`,
-      className: '',
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34]
-    });
+
+  const svgIcon = L.divIcon({
+    html: `<svg width="25" height="41" viewBox="0 0 25 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 22 12.5 41 12.5 41C12.5 41 25 22 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="#111" stroke="#fff" stroke-width="0.7"/>
+      <circle cx="12.5" cy="12.5" r="5.5" fill="#fff"/>
+    </svg>`,
+    className: '',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34]
+  });
+
   for(const id in data){
     const r = data[id];
     if(!markersMap[id]){
-      const popupContent=`<b>${r.address}</b><br>${r.comment||'No comment'}<br><small style=\"color:#666\">${formatTimeAgo(r.timestamp)}</small>`;
+      const popupContent=`<b>${r.address}</b><br>${r.comment||'No comment'}<br><small style="color:#666">${formatTimeAgo(r.timestamp)}</small>`;
       const marker = L.marker([r.lat,r.lng], {icon: svgIcon}).addTo(map).bindPopup(popupContent);
       markersMap[id] = marker;
     }
@@ -301,7 +285,6 @@ db.ref('reports').on('value', snapshot=>{
   updateReportList(data);
 });
 
-// ==== Клик по карте ====
 map.on('click', async e=>{
   const lat=e.latlng.lat, lng=e.latlng.lng;
   const address = await getAddress(lat,lng);
@@ -311,7 +294,6 @@ map.on('click', async e=>{
   addReportBtn.onclick=()=>{ addReport(lat,lng,address,reportComment.value||'No comment'); closeModal(); };
 });
 
-// ==== Кнопка Report ====
 document.getElementById('reportBtn').addEventListener('click', ()=>{
   if(userLat && userLng){
     getAddress(userLat,userLng).then(address=>{
@@ -323,16 +305,71 @@ document.getElementById('reportBtn').addEventListener('click', ()=>{
   } else alert("Turn on geolocation.");
 });
 
-// ==== Закрытие модалки ====
 closeModalBtn.onclick = closeModal;
 modalOverlay.onclick = closeModal;
-
-// ==== Список репортов ====
 listBtn.addEventListener('click', ()=>{ cleanOldReports(); reportList.style.display='flex'; reportList.style.flexDirection='column'; });
 closeListBtn.addEventListener('click', ()=>{ reportList.style.display='none'; });
-
-// ==== Настройки языка ====
 languageSelect.addEventListener('change', ()=>{
   settings.language = languageSelect.value;
   localStorage.setItem('aga_settings', JSON.stringify(settings));
 });
+
+// ==== STOPICE ИНТЕГРАЦИЯ ====
+const stopiceMarkers = {};
+const stopiceIds = new Set();
+
+async function loadStopicePoints() {
+  try {
+    const res = await fetch("/api/fetchStopice");
+    if (!res.ok) throw new Error("Ошибка загрузки /api/fetchStopice");
+    const points = await res.json();
+
+    console.log("Загружено точек StopICE:", points.length);
+
+    // очищаем старые StopICE точки из списка
+    document.querySelectorAll(".stopice-item").forEach(el => el.remove());
+
+    points.forEach(p => {
+      if (!p.id || stopiceIds.has(p.id)) return;
+      if (!p.lat || !p.lon) return;
+
+      const stopiceIcon = L.divIcon({
+        html: `<svg width="25" height="41" viewBox="0 0 25 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 22 12.5 41 12.5 41C12.5 41 25 22 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="#2a6af0" stroke="#fff" stroke-width="0.7"/>
+          <circle cx="12.5" cy="12.5" r="5.5" fill="#fff"/>
+        </svg>`,
+        className: "",
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34]
+      });
+
+      const popup = `
+        <b>${p.location}</b><br>
+        <small>${p.thispriority || ''}</small><br>
+        ${p.comments || ''}<br>
+        ${p.timestamp || ''}<br>
+        ${p.media ? `<img src="${p.media}" width="120"><br>` : ""}
+        ${p.url ? `<a href="${p.url}" target="_blank">Источник</a>` : ""}
+      `;
+
+      const marker = L.marker([p.lat, p.lon], { icon: stopiceIcon }).addTo(map).bindPopup(popup);
+      stopiceMarkers[p.id] = marker;
+      stopiceIds.add(p.id);
+
+      const li = document.createElement("li");
+      li.classList.add("stopice-item");
+      li.innerHTML = `<b>${p.location}</b><br>${p.thispriority || ""}<br><small style="color:#666">${p.timestamp}</small>`;
+      li.onclick = () => {
+        map.setView(marker.getLatLng(), 15);
+        marker.openPopup();
+      };
+      reportsUL.appendChild(li);
+    });
+  } catch (err) {
+    console.error("loadStopicePoints error", err);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadStopicePoints);
+setInterval(loadStopicePoints, 5 * 60 * 1000);
