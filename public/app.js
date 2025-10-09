@@ -326,8 +326,15 @@ async function loadStopicePoints() {
 
     console.log("Загружено точек StopICE:", points.length);
 
-    // очищаем старые StopICE точки из списка
+    // Очищаем старые StopICE элементы из списка
     document.querySelectorAll(".stopice-item").forEach(el => el.remove());
+
+    // ✅ Сортируем по дате — самые свежие сверху
+    points.sort((a, b) => {
+      const da = new Date(a.timestamp);
+      const db = new Date(b.timestamp);
+      return db - da; // по убыванию
+    });
 
     points.forEach(p => {
       if (!p.id || stopiceIds.has(p.id)) return;
@@ -346,7 +353,7 @@ async function loadStopicePoints() {
 
       const popup = `
         <b>${p.location}</b><br>
-        <small>${p.thispriority || ''}</small><br>
+        <small>${p.priority || ''}</small><br>
         ${p.comments || ''}<br>
         ${p.timestamp || ''}<br>
         ${p.media ? `<img src="${p.media}" width="120"><br>` : ""}
@@ -357,14 +364,17 @@ async function loadStopicePoints() {
       stopiceMarkers[p.id] = marker;
       stopiceIds.add(p.id);
 
+      // создаём элемент списка
       const li = document.createElement("li");
       li.classList.add("stopice-item");
-      li.innerHTML = `<b>${p.location}</b><br>${p.thispriority || ""}<br><small style="color:#666">${p.timestamp}</small>`;
+      li.innerHTML = `<b>${p.location}</b><br>${p.priority || ""}<br><small style="color:#666">${p.timestamp}</small>`;
       li.onclick = () => {
         map.setView(marker.getLatLng(), 15);
         marker.openPopup();
       };
-      reportsUL.appendChild(li);
+
+      // добавляем в начало списка, чтобы новые были сверху
+      reportsUL.prepend(li);
     });
   } catch (err) {
     console.error("loadStopicePoints error", err);
