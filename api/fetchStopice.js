@@ -1,5 +1,5 @@
-import { XMLParser } from "fast-xml-parser";
 import fetch from "node-fetch";
+import { XMLParser } from "fast-xml-parser";
 
 export default async function handler(req, res) {
   const url = "https://www.stopice.net/login/?recentmapdata=1&duration=since_yesterday";
@@ -32,7 +32,6 @@ export default async function handler(req, res) {
       url: p.url || "",
     }));
 
-    res.setHeader("Cache-Control", "s-maxage=300");
     res.status(200).json(points);
   } catch (err) {
     console.error("Ошибка получения данных:", err);
