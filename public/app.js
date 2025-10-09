@@ -317,6 +317,16 @@ languageSelect.addEventListener('change', ()=>{
 // ==== STOPICE ИНТЕГРАЦИЯ ====
 const stopiceMarkers = {};
 const stopiceIds = new Set();
+let stopicePoints = [];
+
+// Универсальный парсер даты StopICE → timestamp
+function parseStopiceDate(str) {
+  if (!str) return 0;
+  // Пример: "oct 8, 2025 (12:27:07) PST"
+  const clean = str.replace(/\(.*\)/, '').replace('PST', '').trim();
+  const date = new Date(clean);
+  return date.getTime() || 0;
+}
 
 async function loadStopicePoints() {
   try {
@@ -324,22 +334,31 @@ async function loadStopicePoints() {
     if (!res.ok) throw new Error("Ошибка загрузки /api/fetchStopice");
     const points = await res.json();
 
-    console.log("Загружено точек StopICE:", points.length);
+    stopicePoints = points.map(p => ({
+      id: p.id,
+      lat: parseFloat(p.lat),
+      lng: parseFloat(p.lon),
+      address: p.location || "",
+      comment: p.comments || "",
+      priority: p.priority || "",
+      timestamp: parseStopiceDate(p.timestamp),
+      media: p.media || "",
+      url: p.url || "",
+      source: "stopice"
+    }));
 
-    // Очищаем старые StopICE элементы из списка
-    document.querySelectorAll(".stopice-item").forEach(el => el.remove());
+    console.log("Загружено точек StopICE:", stopicePoints.length);
 
-    // ✅ Сортируем по дате — самые свежие сверху
-    points.sort((a, b) => {
-      const da = new Date(a.timestamp);
-      const db = new Date(b.timestamp);
-      return db - da; // по убыванию
-    });
+    // Удаляем старые StopICE-маркеры
+    for (const id in stopiceMarkers) {
+      map.removeLayer(stopiceMarkers[id]);
+      delete stopiceMarkers[id];
+      stopiceIds.delete(id);
+    }
 
-    points.forEach(p => {
-      if (!p.id || stopiceIds.has(p.id)) return;
-      if (!p.lat || !p.lon) return;
-
+    // Добавляем StopICE маркеры на карту
+    stopicePoints.forEach(p => {
+      if (!p.lat || !p.lng) return;
       const stopiceIcon = L.divIcon({
         html: `<svg width="25" height="41" viewBox="0 0 25 41" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 22 12.5 41 12.5 41C12.5 41 25 22 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="#000000ff" stroke="#fff" stroke-width="0.7"/>
@@ -352,34 +371,72 @@ async function loadStopicePoints() {
       });
 
       const popup = `
-        <b>${p.location}</b><br>
-        <small>${p.priority || ''}</small><br>
-        ${p.comments || ''}<br>
-        ${p.timestamp || ''}<br>
+        <b>${p.address}</b><br>
+        <small>${p.priority}</small><br>
+        ${p.comment}<br>
+        <small style="color:#666">${formatTimeAgo(p.timestamp)}</small><br>
         ${p.media ? `<img src="${p.media}" width="120"><br>` : ""}
         ${p.url ? `<a href="${p.url}" target="_blank">Источник</a>` : ""}
       `;
 
-      const marker = L.marker([p.lat, p.lon], { icon: stopiceIcon }).addTo(map).bindPopup(popup);
+      const marker = L.marker([p.lat, p.lng], { icon: stopiceIcon }).addTo(map).bindPopup(popup);
       stopiceMarkers[p.id] = marker;
       stopiceIds.add(p.id);
-
-      // создаём элемент списка
-      const li = document.createElement("li");
-      li.classList.add("stopice-item");
-      li.innerHTML = `<b>${p.location}</b><br>${p.priority || ""}<br><small style="color:#666">${p.timestamp}</small>`;
-      li.onclick = () => {
-        map.setView(marker.getLatLng(), 15);
-        marker.openPopup();
-      };
-
-      // добавляем в начало списка, чтобы новые были сверху
-      reportsUL.prepend(li);
     });
+
+    // 🔁 Обновляем общий список
+    refreshCombinedList();
   } catch (err) {
     console.error("loadStopicePoints error", err);
   }
 }
 
+// ==== ОБЪЕДИНЕНИЕ СПИСКОВ ====
+function refreshCombinedList() {
+  reportsUL.innerHTML = "";
+
+  // Firebase-репорты (из db.ref('reports'))
+  const localReports = Object.values(currentFirebaseReports || {}).map(r => ({
+    lat: r.lat,
+    lng: r.lng,
+    address: r.address,
+    comment: r.comment,
+    timestamp: r.timestamp,
+    source: "local"
+  }));
+
+  // Комбинируем + сортируем
+  const all = [...localReports, ...stopicePoints].sort((a, b) => b.timestamp - a.timestamp);
+
+  all.forEach(r => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <b>${r.address}</b><br>
+      ${r.comment || "No comment"}<br>
+      <small style="color:#666">${formatTimeAgo(r.timestamp)}</small>
+      ${r.source === "stopice" ? " 🚨" : ""}
+    `;
+    li.onclick = () => {
+      const marker =
+        r.source === "stopice"
+          ? Object.values(stopiceMarkers).find(m => m.getLatLng().lat === r.lat && m.getLatLng().lng === r.lng)
+          : Object.values(markersMap).find(m => m.getLatLng().lat === r.lat && m.getLatLng().lng === r.lng);
+      if (marker) {
+        map.setView(marker.getLatLng(), 15);
+        marker.openPopup();
+      }
+    };
+    reportsUL.appendChild(li);
+  });
+}
+
+// === Поддержка обновления Firebase в реальном времени ===
+let currentFirebaseReports = {};
+db.ref("reports").on("value", snapshot => {
+  currentFirebaseReports = snapshot.val() || {};
+  refreshCombinedList();
+});
+
+// Запуск
 document.addEventListener("DOMContentLoaded", loadStopicePoints);
 setInterval(loadStopicePoints, 300 * 60 * 1000);
