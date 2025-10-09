@@ -326,19 +326,25 @@ async function loadStopicePoints() {
 
     console.log("Загружено точек StopICE:", points.length);
 
-    // очищаем старые StopICE точки из списка
+    // Очищаем старые StopICE точки из списка и с карты
     document.querySelectorAll(".stopice-item").forEach(el => el.remove());
+    Object.values(stopiceMarkers).forEach(m => map.removeLayer(m));
+    Object.keys(stopiceMarkers).forEach(k => delete stopiceMarkers[k]);
+    stopiceIds.clear();
 
     // Сортируем по времени (новые сверху)
     points.sort((a, b) => {
-      // Преобразуем timestamp в миллисекунды
       const ta = Date.parse(a.timestamp);
       const tb = Date.parse(b.timestamp);
+      // некорректные даты считаем самыми старыми
+      if (isNaN(tb) && isNaN(ta)) return 0;
+      if (isNaN(tb)) return -1;
+      if (isNaN(ta)) return 1;
       return tb - ta;
     });
 
     points.forEach(p => {
-      if (!p.id || stopiceIds.has(p.id)) return;
+      if (!p.id) return;
       if (!p.lat || !p.lon) return;
 
       const stopiceIcon = L.divIcon({
