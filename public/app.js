@@ -319,23 +319,48 @@ const stopiceMarkers = {};
 let stopicePoints = [];
 
 // Универсальный парсер StopICE даты → timestamp
-function parseStopiceDate(str) {
-  if (!str) return 0;
-  // Пример: "oct 9, 2025 (00:00:00) PST"
-  try {
-    const match = str.match(/([a-z]+)\s+(\d{1,2}),\s*(\d{4})\s*\((\d{2}):(\d{2}):(\d{2})\)/i);
-    if (!match) return 0;
-    const [_, monthStr, day, year, hh, mm, ss] = match;
-    const month = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
-      .indexOf(monthStr.toLowerCase());
-    if (month < 0) return 0;
-    const date = new Date(Date.UTC(year, month, day, hh, mm, ss));
-    return date.getTime();
-  } catch (e) {
-    console.warn("parseStopiceDate error:", str, e);
-    return 0;
+function isPacificDST(year, monthIndex, day) {
+  if (monthIndex < 2 || monthIndex > 10) return false;
+  if (monthIndex > 2 && monthIndex < 10) return true;
+
+  function firstSunday(year, monthIndex) {
+    const d = new Date(year, monthIndex, 1);
+    return 1 + ((7 - d.getDay()) % 7);
   }
+  const secondSundayMar = firstSunday(year, 2) + 7;
+  const firstSundayNov = firstSunday(year, 10);
+
+  if (monthIndex === 2) return day >= secondSundayMar;
+  if (monthIndex === 10) return day < firstSundayNov;
+  return false;
 }
+
+function parseStopiceDate(str) {
+  if (!str || typeof str !== "string") return 0;
+  const rx = /([a-z]+)\s+(\d{1,2}),\s*(\d{4})(?:\s*\(?\s*(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(am|pm|AM|PM)?\s*\)?)?\s*(PST|PDT)?/i;
+  const m = str.match(rx);
+  if (!m) return 0;
+
+  const [, monthStr, dayStr, yearStr, hhStr, mmStr, ssStr, ampmRaw, tzRaw] = m;
+  const monthMap = { jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11 };
+  const month = monthMap[monthStr.toLowerCase()] ?? 0;
+  const day = Number(dayStr);
+  const year = Number(yearStr);
+  let hour = hhStr ? Number(hhStr) : 0;
+  const minute = mmStr ? Number(mmStr) : 0;
+  const second = ssStr ? Number(ssStr) : 0;
+
+  const ampm = (ampmRaw || "").toLowerCase();
+  if (ampm === "am" && hour === 12) hour = 0;
+  if (ampm === "pm" && hour < 12) hour += 12;
+
+  let offsetHours;
+  if (tzRaw?.toUpperCase() === "PDT") offsetHours = -7;
+  else offsetHours = isPacificDST(year, month, day) ? -7 : -8;
+
+  return Date.UTC(year, month, day, hour - offsetHours, minute, second);
+}
+
 
 
 // Форматирование времени "... ago"
@@ -367,7 +392,7 @@ async function loadStopicePoints() {
         source: "stopice"
       }))
       // Оставляем только валидные и не старше 10 часов
-      
+
      // .filter(p => p.timestamp && Date.now() - p.timestamp < 10 * 60 * 60 * 1000);
 
 
@@ -384,10 +409,10 @@ async function loadStopicePoints() {
     stopicePoints.forEach(p => {
       if (!p.lat || !p.lng) return;
       const stopiceIcon = L.divIcon({
-        html: `<svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 22 12.5 41 12.5 41C12.5 41 25 22 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="#000" stroke="#fff" stroke-width="0.7"/>
-          <circle cx="12.5" cy="12.5" r="5.5" fill="#fff"/>
-        </svg>`,
+        html: `<svg width="25" height="41" viewBox="0 0 25 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 22 12.5 41 12.5 41C12.5 41 25 22 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="#111" stroke="#fff" stroke-width="0.7"/>
+      <circle cx="12.5" cy="12.5" r="5.5" fill="#fff"/>
+    </svg>`,
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34]
