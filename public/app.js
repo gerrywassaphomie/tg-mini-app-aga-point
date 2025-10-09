@@ -329,6 +329,14 @@ async function loadStopicePoints() {
     // очищаем старые StopICE точки из списка
     document.querySelectorAll(".stopice-item").forEach(el => el.remove());
 
+    // Сортируем по времени (новые сверху)
+    points.sort((a, b) => {
+      // Преобразуем timestamp в миллисекунды
+      const ta = Date.parse(a.timestamp);
+      const tb = Date.parse(b.timestamp);
+      return tb - ta;
+    });
+
     points.forEach(p => {
       if (!p.id || stopiceIds.has(p.id)) return;
       if (!p.lat || !p.lon) return;
@@ -344,11 +352,18 @@ async function loadStopicePoints() {
         popupAnchor: [1, -34]
       });
 
+      // Преобразуем timestamp в миллисекунды и форматируем как "сколько времени назад"
+      let ago = '';
+      if (p.timestamp) {
+        const t = Date.parse(p.timestamp);
+        if (!isNaN(t)) ago = formatTimeAgo(t);
+      }
+
       const popup = `
         <b>${p.location}</b><br>
         <small>${p.thispriority || ''}</small><br>
         ${p.comments || ''}<br>
-        ${p.timestamp || ''}<br>
+        ${ago ? `<small style=\"color:#666\">${ago}</small><br>` : ''}
         ${p.media ? `<img src="${p.media}" width="120"><br>` : ""}
         ${p.url ? `<a href="${p.url}" target="_blank">Источник</a>` : ""}
       `;
@@ -359,7 +374,7 @@ async function loadStopicePoints() {
 
       const li = document.createElement("li");
       li.classList.add("stopice-item");
-      li.innerHTML = `<b>${p.location}</b><br>${p.thispriority || ""}<br><small style="color:#666">${p.timestamp}</small>`;
+      li.innerHTML = `<b>${p.location}</b><br>${p.thispriority || ""}<br><small style="color:#666">${ago}</small>`;
       li.onclick = () => {
         map.setView(marker.getLatLng(), 15);
         marker.openPopup();
