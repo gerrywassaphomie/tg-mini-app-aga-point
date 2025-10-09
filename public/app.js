@@ -316,55 +316,62 @@ languageSelect.addEventListener('change', ()=>{
 
 // ==== STOPICE ИНТЕГРАЦИЯ ====
 const stopiceMarkers = {};
-const stopiceIds = new Set();
 let stopicePoints = [];
 
-// Универсальный парсер даты StopICE → timestamp
+// Универсальный парсер StopICE даты → timestamp
 function parseStopiceDate(str) {
   if (!str) return 0;
-  // Пример: "oct 8, 2025 (12:27:07) PST"
-  const clean = str.replace(/\(.*\)/, '').replace('PST', '').trim();
-  const date = new Date(clean);
-  return date.getTime() || 0;
+  // Пример: "oct 9, 2025 (00:00:00) PST"
+  const clean = str.replace(/\(.*\)/, "").replace("PST", "").trim();
+  const date = new Date(clean + " UTC"); // Принудительно UTC для стабильности
+  return isNaN(date.getTime()) ? 0 : date.getTime();
+}
+
+// Форматирование времени "... ago"
+function formatTimeAgo(ts) {
+  const diff = Math.floor((Date.now() - ts) / 1000);
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} h ago`;
+  return `${Math.floor(diff / 86400)} d ago`;
 }
 
 async function loadStopicePoints() {
   try {
     const res = await fetch("/api/fetchStopice");
-    if (!res.ok) throw new Error("Ошибка загрузки /api/fetchStopice");
+    if (!res.ok) throw new Error("Ошибка загрузки StopICE");
     const points = await res.json();
 
-    stopicePoints = points.map(p => ({
-      id: p.id,
-      lat: parseFloat(p.lat),
-      lng: parseFloat(p.lon),
-      address: p.location || "",
-      comment: p.comments || "",
-      priority: p.priority || "",
-      timestamp: parseStopiceDate(p.timestamp),
-      media: p.media || "",
-      url: p.url || "",
-      source: "stopice"
-    }));
+    stopicePoints = points
+      .map(p => ({
+        id: p.id,
+        lat: parseFloat(p.lat),
+        lng: parseFloat(p.lon),
+        address: p.location || "Unknown location",
+        comment: p.comments || "",
+        priority: p.priority || "",
+        timestamp: parseStopiceDate(p.timestamp),
+        media: p.media || "",
+        url: p.url || "",
+        source: "stopice"
+      }))
+      // Оставляем только валидные и не старше 10 часов
+      .filter(p => p.timestamp && Date.now() - p.timestamp < 10 * 60 * 60 * 1000);
 
-    console.log("Загружено точек StopICE:", stopicePoints.length);
-
-    // Удаляем старые StopICE-маркеры
+    // Удаляем старые StopICE маркеры
     for (const id in stopiceMarkers) {
       map.removeLayer(stopiceMarkers[id]);
       delete stopiceMarkers[id];
-      stopiceIds.delete(id);
     }
 
-    // Добавляем StopICE маркеры на карту
+    // Добавляем новые StopICE маркеры
     stopicePoints.forEach(p => {
       if (!p.lat || !p.lng) return;
       const stopiceIcon = L.divIcon({
-        html: `<svg width="25" height="41" viewBox="0 0 25 41" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 22 12.5 41 12.5 41C12.5 41 25 22 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="#000000ff" stroke="#fff" stroke-width="0.7"/>
+        html: `<svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 22 12.5 41 12.5 41C12.5 41 25 22 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="#000" stroke="#fff" stroke-width="0.7"/>
           <circle cx="12.5" cy="12.5" r="5.5" fill="#fff"/>
         </svg>`,
-        className: "",
         iconSize: [25, 41],
         iconAnchor: [12, 41],
         popupAnchor: [1, -34]
@@ -379,23 +386,35 @@ async function loadStopicePoints() {
         ${p.url ? `<a href="${p.url}" target="_blank">Источник</a>` : ""}
       `;
 
-      const marker = L.marker([p.lat, p.lng], { icon: stopiceIcon }).addTo(map).bindPopup(popup);
-      stopiceMarkers[p.id] = marker;
-      stopiceIds.add(p.id);
+      stopiceMarkers[p.id] = L.marker([p.lat, p.lng], { icon: stopiceIcon })
+        .addTo(map)
+        .bindPopup(popup);
     });
 
-    // 🔁 Обновляем общий список
     refreshCombinedList();
   } catch (err) {
-    console.error("loadStopicePoints error", err);
+    console.error("loadStopicePoints error:", err);
   }
+}
+
+// ==== УДАЛЕНИЕ СТАРЫХ ЛОКАЛЬНЫХ РЕПОРТОВ (старше 10 часов) ====
+function cleanOldReports() {
+  const now = Date.now();
+  db.ref("reports").once("value").then(snapshot => {
+    const data = snapshot.val() || {};
+    for (const id in data) {
+      if (now - data[id].timestamp > 10 * 60 * 60 * 1000) {
+        db.ref("reports/" + id).remove();
+      }
+    }
+  });
 }
 
 // ==== ОБЪЕДИНЕНИЕ СПИСКОВ ====
 function refreshCombinedList() {
   reportsUL.innerHTML = "";
 
-  // Firebase-репорты (из db.ref('reports'))
+  // Firebase (локальные)
   const localReports = Object.values(currentFirebaseReports || {}).map(r => ({
     lat: r.lat,
     lng: r.lng,
@@ -405,8 +424,10 @@ function refreshCombinedList() {
     source: "local"
   }));
 
-  // Комбинируем + сортируем
-  const all = [...localReports, ...stopicePoints].sort((a, b) => b.timestamp - a.timestamp);
+  // Комбинируем всё
+  const all = [...localReports, ...stopicePoints]
+    .filter(r => r.timestamp)
+    .sort((a, b) => b.timestamp - a.timestamp);
 
   all.forEach(r => {
     const li = document.createElement("li");
@@ -419,8 +440,16 @@ function refreshCombinedList() {
     li.onclick = () => {
       const marker =
         r.source === "stopice"
-          ? Object.values(stopiceMarkers).find(m => m.getLatLng().lat === r.lat && m.getLatLng().lng === r.lng)
-          : Object.values(markersMap).find(m => m.getLatLng().lat === r.lat && m.getLatLng().lng === r.lng);
+          ? Object.values(stopiceMarkers).find(
+              m =>
+                m.getLatLng().lat === r.lat &&
+                m.getLatLng().lng === r.lng
+            )
+          : Object.values(markersMap).find(
+              m =>
+                m.getLatLng().lat === r.lat &&
+                m.getLatLng().lng === r.lng
+            );
       if (marker) {
         map.setView(marker.getLatLng(), 15);
         marker.openPopup();
@@ -430,13 +459,14 @@ function refreshCombinedList() {
   });
 }
 
-// === Поддержка обновления Firebase в реальном времени ===
+// === Поддержка Firebase в реальном времени ===
 let currentFirebaseReports = {};
 db.ref("reports").on("value", snapshot => {
   currentFirebaseReports = snapshot.val() || {};
+  cleanOldReports();
   refreshCombinedList();
 });
 
 // Запуск
 document.addEventListener("DOMContentLoaded", loadStopicePoints);
-setInterval(loadStopicePoints, 300 * 60 * 1000);
+setInterval(loadStopicePoints, 10 * 60 * 1000); // обновление каждые 10 минут
