@@ -322,10 +322,21 @@ let stopicePoints = [];
 function parseStopiceDate(str) {
   if (!str) return 0;
   // Пример: "oct 9, 2025 (00:00:00) PST"
-  const clean = str.replace(/\(.*\)/, "").replace("PST", "").trim();
-  const date = new Date(clean + " UTC"); // Принудительно UTC для стабильности
-  return isNaN(date.getTime()) ? 0 : date.getTime();
+  try {
+    const match = str.match(/([a-z]+)\s+(\d{1,2}),\s*(\d{4})\s*\((\d{2}):(\d{2}):(\d{2})\)/i);
+    if (!match) return 0;
+    const [_, monthStr, day, year, hh, mm, ss] = match;
+    const month = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
+      .indexOf(monthStr.toLowerCase());
+    if (month < 0) return 0;
+    const date = new Date(Date.UTC(year, month, day, hh, mm, ss));
+    return date.getTime();
+  } catch (e) {
+    console.warn("parseStopiceDate error:", str, e);
+    return 0;
+  }
 }
+
 
 // Форматирование времени "... ago"
 function formatTimeAgo(ts) {
@@ -356,7 +367,12 @@ async function loadStopicePoints() {
         source: "stopice"
       }))
       // Оставляем только валидные и не старше 10 часов
-      .filter(p => p.timestamp && Date.now() - p.timestamp < 10 * 60 * 60 * 1000);
+      
+     // .filter(p => p.timestamp && Date.now() - p.timestamp < 10 * 60 * 60 * 1000);
+
+
+     .filter(p => p.timestamp);
+
 
     // Удаляем старые StopICE маркеры
     for (const id in stopiceMarkers) {
