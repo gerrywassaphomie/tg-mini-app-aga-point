@@ -326,46 +326,16 @@ async function loadStopicePoints() {
 
     console.log("Загружено точек StopICE:", points.length);
 
-    // Очищаем старые StopICE точки из списка и с карты
+    // очищаем старые StopICE точки из списка
     document.querySelectorAll(".stopice-item").forEach(el => el.remove());
-    Object.values(stopiceMarkers).forEach(m => map.removeLayer(m));
-    Object.keys(stopiceMarkers).forEach(k => delete stopiceMarkers[k]);
-    stopiceIds.clear();
-
-    // Парсер для нестандартных дат типа "Oct 8, 2025 (07:18:01) PST"
-    function parseStopiceDate(str) {
-      if (!str) return NaN;
-      // Пробуем стандартный парсер
-      let t = Date.parse(str);
-      if (!isNaN(t)) return t;
-      // Пробуем вручную: Oct 8, 2025 (07:18:01) PST
-      const m = str.match(/([A-Za-z]+ \d{1,2}, \d{4}) \((\d{2}:\d{2}:\d{2})\)/);
-      if (m) {
-        // Собираем строку вида "Oct 8, 2025 07:18:01"
-        const s = m[1] + ' ' + m[2];
-        t = Date.parse(s);
-        if (!isNaN(t)) return t;
-      }
-      return NaN;
-    }
-
-    // Сортируем по времени (новые сверху)
-    points.sort((a, b) => {
-      const ta = parseStopiceDate(a.timestamp);
-      const tb = parseStopiceDate(b.timestamp);
-      if (isNaN(tb) && isNaN(ta)) return 0;
-      if (isNaN(tb)) return -1;
-      if (isNaN(ta)) return 1;
-      return tb - ta;
-    });
 
     points.forEach(p => {
-      if (!p.id) return;
+      if (!p.id || stopiceIds.has(p.id)) return;
       if (!p.lat || !p.lon) return;
 
       const stopiceIcon = L.divIcon({
         html: `<svg width="25" height="41" viewBox="0 0 25 41" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 22 12.5 41 12.5 41C12.5 41 25 22 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="#000000ff" stroke="#fff" stroke-width="0.7"/>
+          <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 22 12.5 41 12.5 41C12.5 41 25 22 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="#2a6af0" stroke="#fff" stroke-width="0.7"/>
           <circle cx="12.5" cy="12.5" r="5.5" fill="#fff"/>
         </svg>`,
         className: "",
@@ -374,19 +344,11 @@ async function loadStopicePoints() {
         popupAnchor: [1, -34]
       });
 
-      // Преобразуем timestamp в миллисекунды и форматируем как "сколько времени назад"
-      let ago = '';
-      if (p.timestamp) {
-        const t = parseStopiceDate(p.timestamp);
-        if (!isNaN(t)) ago = formatTimeAgo(t);
-        else ago = p.timestamp;
-      }
-
       const popup = `
         <b>${p.location}</b><br>
         <small>${p.thispriority || ''}</small><br>
         ${p.comments || ''}<br>
-        ${ago ? `<small style=\"color:#666\">${ago}</small><br>` : ''}
+        ${p.timestamp || ''}<br>
         ${p.media ? `<img src="${p.media}" width="120"><br>` : ""}
         ${p.url ? `<a href="${p.url}" target="_blank">Источник</a>` : ""}
       `;
@@ -397,7 +359,7 @@ async function loadStopicePoints() {
 
       const li = document.createElement("li");
       li.classList.add("stopice-item");
-      li.innerHTML = `<b>${p.location}</b><br>${p.thispriority || ""}<br><small style="color:#666">${ago}</small>`;
+      li.innerHTML = `<b>${p.location}</b><br>${p.thispriority || ""}<br><small style="color:#666">${p.timestamp}</small>`;
       li.onclick = () => {
         map.setView(marker.getLatLng(), 15);
         marker.openPopup();
@@ -410,4 +372,4 @@ async function loadStopicePoints() {
 }
 
 document.addEventListener("DOMContentLoaded", loadStopicePoints);
-setInterval(loadStopicePoints, 5 * 60 * 1000);
+setInterval(loadStopicePoints, 300 * 60 * 1000);
