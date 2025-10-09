@@ -241,7 +241,7 @@ function cleanOldReports() {
   const now = Date.now();
   db.ref('reports').once('value').then(snapshot=>{
     const data = snapshot.val() || {};
-    for(const id in data) if(now - data[id].timestamp > 5*60*1000) db.ref('reports/'+id).remove();
+    for(const id in data) if(now - data[id].timestamp > 300*60*1000) db.ref('reports/'+id).remove();
   });
 }
 
