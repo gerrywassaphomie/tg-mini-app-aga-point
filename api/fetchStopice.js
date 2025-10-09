@@ -1,4 +1,5 @@
 import { XMLParser } from "fast-xml-parser";
+import fetch from "node-fetch";
 
 export default async function handler(req, res) {
   const url = "https://www.stopice.net/login/?recentmapdata=1&duration=since_yesterday";
