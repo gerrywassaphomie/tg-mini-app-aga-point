@@ -332,11 +332,27 @@ async function loadStopicePoints() {
     Object.keys(stopiceMarkers).forEach(k => delete stopiceMarkers[k]);
     stopiceIds.clear();
 
+    // Парсер для нестандартных дат типа "Oct 8, 2025 (07:18:01) PST"
+    function parseStopiceDate(str) {
+      if (!str) return NaN;
+      // Пробуем стандартный парсер
+      let t = Date.parse(str);
+      if (!isNaN(t)) return t;
+      // Пробуем вручную: Oct 8, 2025 (07:18:01) PST
+      const m = str.match(/([A-Za-z]+ \d{1,2}, \d{4}) \((\d{2}:\d{2}:\d{2})\)/);
+      if (m) {
+        // Собираем строку вида "Oct 8, 2025 07:18:01"
+        const s = m[1] + ' ' + m[2];
+        t = Date.parse(s);
+        if (!isNaN(t)) return t;
+      }
+      return NaN;
+    }
+
     // Сортируем по времени (новые сверху)
     points.sort((a, b) => {
-      const ta = Date.parse(a.timestamp);
-      const tb = Date.parse(b.timestamp);
-      // некорректные даты считаем самыми старыми
+      const ta = parseStopiceDate(a.timestamp);
+      const tb = parseStopiceDate(b.timestamp);
       if (isNaN(tb) && isNaN(ta)) return 0;
       if (isNaN(tb)) return -1;
       if (isNaN(ta)) return 1;
@@ -361,8 +377,9 @@ async function loadStopicePoints() {
       // Преобразуем timestamp в миллисекунды и форматируем как "сколько времени назад"
       let ago = '';
       if (p.timestamp) {
-        const t = Date.parse(p.timestamp);
+        const t = parseStopiceDate(p.timestamp);
         if (!isNaN(t)) ago = formatTimeAgo(t);
+        else ago = p.timestamp;
       }
 
       const popup = `
