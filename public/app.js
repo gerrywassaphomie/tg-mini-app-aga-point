@@ -335,7 +335,7 @@ async function loadStopicePoints() {
 
       const stopiceIcon = L.divIcon({
         html: `<svg width="25" height="41" viewBox="0 0 25 41" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 22 12.5 41 12.5 41C12.5 41 25 22 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="#2a6af0" stroke="#fff" stroke-width="0.7"/>
+          <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 22 12.5 41 12.5 41C12.5 41 25 22 25 12.5C25 5.6 19.4 0 12.5 0Z" fill="#000000ff" stroke="#fff" stroke-width="0.7"/>
           <circle cx="12.5" cy="12.5" r="5.5" fill="#fff"/>
         </svg>`,
         className: "",
